@@ -5,6 +5,7 @@ import com.example.gestion_de_notes.entity.Personne;
 import com.example.gestion_de_notes.entity.Role;
 import com.example.gestion_de_notes.repository.CompteUtilisateurRepository;
 import com.example.gestion_de_notes.repository.PersonneRepository;
+import com.example.gestion_de_notes.service.DataInitializationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -19,10 +20,12 @@ public class DataInitializer implements CommandLineRunner {
     private final PersonneRepository personneRepository;
     private final CompteUtilisateurRepository compteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DataInitializationService dataInitializationService;
     
     @Override
     public void run(String... args) throws Exception {
         initializeDefaultAdminUser();
+        initializeNiveaux();
     }
     
     private void initializeDefaultAdminUser() {
@@ -30,8 +33,7 @@ public class DataInitializer implements CommandLineRunner {
         if (compteRepository.countByRole(Role.ADMIN_USER) > 0) {
             log.info("Un compte ADMIN_USER existe déjà, pas d'initialisation nécessaire");
             return;
-        }
-        
+        }        
         log.info("Initialisation du compte ADMIN_USER par défaut...");
         
         // Créer la personne par défaut pour l'admin
@@ -58,5 +60,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Compte ADMIN_USER créé avec le login: {}", adminCompte.getLogin());
         log.info("Mot de passe par défaut: admin123");
         log.info("IMPORTANT: Changez ce mot de passe après la première connexion!");
+    }
+    
+    private void initializeNiveaux() {
+        log.info("Initialisation des niveaux...");
+        dataInitializationService.initialiserNiveaux();
+        log.info("Niveaux initialisés avec succès");
     }
 }

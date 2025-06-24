@@ -1,0 +1,329 @@
+package com.example.gestion_de_notes.service;
+
+import com.example.gestion_de_notes.dto.EtudiantDTO;
+import com.example.gestion_de_notes.entity.*;
+import com.example.gestion_de_notes.repository.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.*;
+
+@Service
+@Transactional
+public class ImportEtudiantService {
+    
+    @Autowired
+    private EtudiantRepository etudiantRepository;
+    
+    @Autowired
+    private InscriptionRepository inscriptionRepository;
+    
+    @Autowired
+    private NiveauRepository niveauRepository;
+    
+    @Autowired
+    private JournalApplicationService journalService;
+    
+    @Autowired
+    private HistoriqueModificationEtudiantService historiqueService;
+    
+    public static class ImportResult {
+        private boolean success;
+        private String message;
+        private List<String> errors = new ArrayList<>();
+        private List<String> warnings = new ArrayList<>();
+        private int nbInscriptions = 0;
+        private int nbReinscriptions = 0;
+        
+        // Getters and setters
+        public boolean isSuccess() { return success; }
+        public void setSuccess(boolean success) { this.success = success; }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+        public List<String> getErrors() { return errors; }
+        public void setErrors(List<String> errors) { this.errors = errors; }
+        public List<String> getWarnings() { return warnings; }
+        public void setWarnings(List<String> warnings) { this.warnings = warnings; }
+        public int getNbInscriptions() { return nbInscriptions; }
+        public void setNbInscriptions(int nbInscriptions) { this.nbInscriptions = nbInscriptions; }
+        public int getNbReinscriptions() { return nbReinscriptions; }
+        public void setNbReinscriptions(int nbReinscriptions) { this.nbReinscriptions = nbReinscriptions; }
+    }
+    
+    public ImportResult importerEtudiants(MultipartFile file, String anneeUniversitaire, 
+                                         CompteUtilisateur utilisateur) {
+        ImportResult result = new ImportResult();
+        
+        try {
+            // Vérification du format de fichier
+            if (!file.getOriginalFilename().endsWith(".xlsx")) {
+                result.setSuccess(false);
+                result.setMessage("Format de fichier incorrect. Seuls les fichiers Excel (.xlsx) sont acceptés");
+                return result;
+            }
+            
+            Workbook workbook = new XSSFWorkbook(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            // Vérification de la structure du fichier
+            if (!verifierStructureFichier(sheet, result)) {
+                return result;
+            }
+            
+            List<EtudiantImportData> etudiants = lireDonneesFichier(sheet, result);
+            if (!result.isSuccess()) {
+                return result;
+            }
+            
+            // Traitement des étudiants
+            traiterEtudiants(etudiants, anneeUniversitaire, utilisateur, result);
+            
+            workbook.close();
+            
+        } catch (IOException e) {
+            result.setSuccess(false);
+            result.setMessage("Erreur lors de la lecture du fichier: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    private boolean verifierStructureFichier(Sheet sheet, ImportResult result) {
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            result.setSuccess(false);
+            result.setMessage("Le fichier ne contient pas d'en-tête");
+            return false;
+        }
+        
+        // Vérifier les colonnes attendues: ID_ETUDIANT, CNE, NOM, PRENOM, ID_NIVEAU_ACTUEL, TYPE
+        String[] expectedHeaders = {"ID_ETUDIANT", "CNE", "NOM", "PRENOM", "ID_NIVEAU_ACTUEL", "TYPE"};
+        
+        if (headerRow.getLastCellNum() < expectedHeaders.length) {
+            result.setSuccess(false);
+            result.setMessage("Le fichier ne contient pas toutes les colonnes requises");
+            return false;
+        }
+        
+        for (int i = 0; i < expectedHeaders.length; i++) {
+            Cell cell = headerRow.getCell(i);
+            if (cell == null || !expectedHeaders[i].equals(cell.getStringCellValue().trim())) {
+                result.setSuccess(false);
+                result.setMessage("En-tête incorrect à la colonne " + (i + 1) + ". Attendu: " + expectedHeaders[i]);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private static class EtudiantImportData {
+        public String idEtudiant;
+        public String cne;
+        public String nom;
+        public String prenom;
+        public Long idNiveau;
+        public TypeInscription type;
+        public int rowNumber;
+    }
+    
+    private List<EtudiantImportData> lireDonneesFichier(Sheet sheet, ImportResult result) {
+        List<EtudiantImportData> etudiants = new ArrayList<>();
+        
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) continue;
+            
+            try {
+                EtudiantImportData data = new EtudiantImportData();
+                data.rowNumber = i + 1;
+                
+                // Lecture des cellules
+                data.idEtudiant = getCellStringValue(row.getCell(0));
+                data.cne = getCellStringValue(row.getCell(1));
+                data.nom = getCellStringValue(row.getCell(2));
+                data.prenom = getCellStringValue(row.getCell(3));
+                
+                String idNiveauStr = getCellStringValue(row.getCell(4));
+                if (idNiveauStr != null && !idNiveauStr.trim().isEmpty()) {
+                    try {
+                        data.idNiveau = Long.parseLong(idNiveauStr.trim());
+                    } catch (NumberFormatException e) {
+                        result.getErrors().add("Ligne " + data.rowNumber + ": ID niveau invalide");
+                        continue;
+                    }
+                }
+                
+                String typeStr = getCellStringValue(row.getCell(5));
+                if ("INSCRIPTION".equalsIgnoreCase(typeStr)) {
+                    data.type = TypeInscription.INSCRIPTION;
+                } else if ("REINSCRIPTION".equalsIgnoreCase(typeStr)) {
+                    data.type = TypeInscription.REINSCRIPTION;
+                } else {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": Type invalide (doit être INSCRIPTION ou REINSCRIPTION)");
+                    continue;
+                }
+                
+                // Validation des données
+                if (data.cne == null || data.cne.trim().isEmpty()) {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": CNE manquant");
+                    continue;
+                }
+                if (data.nom == null || data.nom.trim().isEmpty()) {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": Nom manquant");
+                    continue;
+                }
+                if (data.prenom == null || data.prenom.trim().isEmpty()) {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": Prénom manquant");
+                    continue;
+                }
+                if (data.idNiveau == null) {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": ID niveau manquant");
+                    continue;
+                }
+                
+                etudiants.add(data);
+                
+            } catch (Exception e) {
+                result.getErrors().add("Ligne " + (i + 1) + ": Erreur de lecture - " + e.getMessage());
+            }
+        }
+        
+        if (!result.getErrors().isEmpty()) {
+            result.setSuccess(false);
+            result.setMessage("Erreurs de validation détectées dans le fichier");
+        }
+        
+        return etudiants;
+    }
+    
+    private void traiterEtudiants(List<EtudiantImportData> etudiants, String anneeUniversitaire, 
+                                 CompteUtilisateur utilisateur, ImportResult result) {
+        
+        for (EtudiantImportData data : etudiants) {
+            try {
+                // Vérifier l'existence du niveau
+                Optional<Niveau> niveauOpt = niveauRepository.findById(data.idNiveau);
+                if (!niveauOpt.isPresent()) {
+                    result.getErrors().add("Ligne " + data.rowNumber + ": Niveau avec ID " + data.idNiveau + " introuvable");
+                    continue;
+                }
+                
+                Niveau niveau = niveauOpt.get();
+                
+                if (data.type == TypeInscription.INSCRIPTION) {
+                    // Nouvel étudiant
+                    if (etudiantRepository.existsByCne(data.cne)) {
+                        result.getErrors().add("Ligne " + data.rowNumber + ": Un étudiant avec le CNE " + data.cne + " existe déjà");
+                        continue;
+                    }
+                    
+                    // Créer le nouvel étudiant
+                    Etudiant etudiant = new Etudiant();
+                    etudiant.setCne(data.cne);
+                    etudiant.setNom(data.nom);
+                    etudiant.setPrenom(data.prenom);
+                    etudiant = etudiantRepository.save(etudiant);
+                    
+                    // Créer l'inscription
+                    Inscription inscription = new Inscription();
+                    inscription.setEtudiant(etudiant);
+                    inscription.setNiveau(niveau);
+                    inscription.setAnneeUniversitaire(anneeUniversitaire);
+                    inscription.setTypeInscription(TypeInscription.INSCRIPTION);
+                    inscriptionRepository.save(inscription);
+                    
+                    result.setNbInscriptions(result.getNbInscriptions() + 1);
+                    
+                    // Enregistrer dans le journal
+                    journalService.enregistrerAction(utilisateur, "INSCRIPTION_ETUDIANT", 
+                        "Inscription de l'étudiant " + etudiant.getNomComplet() + " (CNE: " + etudiant.getCne() + ") en " + niveau.getAlias());
+                    
+                } else {
+                    // Réinscription
+                    Optional<Etudiant> etudiantOpt = etudiantRepository.findByCne(data.cne);
+                    if (!etudiantOpt.isPresent()) {
+                        result.getErrors().add("Ligne " + data.rowNumber + ": Étudiant avec CNE " + data.cne + " introuvable pour la réinscription");
+                        continue;
+                    }
+                    
+                    Etudiant etudiant = etudiantOpt.get();
+                    
+                    // Vérifier si les données ont changé
+                    boolean dataChanged = false;
+                    String ancienNom = etudiant.getNom();
+                    String ancienPrenom = etudiant.getPrenom();
+                    
+                    if (!etudiant.getNom().equals(data.nom) || !etudiant.getPrenom().equals(data.prenom)) {
+                        dataChanged = true;
+                        
+                        // Enregistrer l'historique
+                        historiqueService.enregistrerModification(etudiant, 
+                            etudiant.getCne(), ancienNom, ancienPrenom,
+                            data.cne, data.nom, data.prenom, utilisateur);
+                        
+                        // Mettre à jour les données
+                        etudiant.setNom(data.nom);
+                        etudiant.setPrenom(data.prenom);
+                        etudiantRepository.save(etudiant);
+                        
+                        result.getWarnings().add("Ligne " + data.rowNumber + ": Données de l'étudiant " + data.cne + " mises à jour");
+                    }
+                    
+                    // Vérifier si l'inscription existe déjà
+                    Optional<Inscription> inscriptionExistante = inscriptionRepository
+                        .findByEtudiantNiveauAndAnnee(etudiant.getIdEtudiant(), niveau.getIdNiveau(), anneeUniversitaire);
+                    
+                    if (!inscriptionExistante.isPresent()) {
+                        // Créer la nouvelle inscription
+                        Inscription inscription = new Inscription();
+                        inscription.setEtudiant(etudiant);
+                        inscription.setNiveau(niveau);
+                        inscription.setAnneeUniversitaire(anneeUniversitaire);
+                        inscription.setTypeInscription(TypeInscription.REINSCRIPTION);
+                        inscriptionRepository.save(inscription);
+                        
+                        result.setNbReinscriptions(result.getNbReinscriptions() + 1);
+                        
+                        // Enregistrer dans le journal
+                        journalService.enregistrerAction(utilisateur, "REINSCRIPTION_ETUDIANT", 
+                            "Réinscription de l'étudiant " + etudiant.getNomComplet() + " (CNE: " + etudiant.getCne() + ") en " + niveau.getAlias());
+                    } else {
+                        result.getWarnings().add("Ligne " + data.rowNumber + ": L'étudiant " + data.cne + " est déjà inscrit en " + niveau.getAlias() + " pour l'année " + anneeUniversitaire);
+                    }
+                }
+                
+            } catch (Exception e) {
+                result.getErrors().add("Ligne " + data.rowNumber + ": Erreur de traitement - " + e.getMessage());
+            }
+        }
+        
+        if (result.getErrors().isEmpty()) {
+            result.setSuccess(true);
+            result.setMessage("Import terminé avec succès");
+        } else {
+            result.setSuccess(false);
+            result.setMessage("Import terminé avec des erreurs");
+        }
+    }
+    
+    private String getCellStringValue(Cell cell) {
+        if (cell == null) return null;
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return String.valueOf((long) cell.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            default:
+                return null;
+        }
+    }
+}
