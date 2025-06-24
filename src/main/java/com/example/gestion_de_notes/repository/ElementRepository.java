@@ -16,13 +16,16 @@ public interface ElementRepository extends JpaRepository<Element, Long> {
     
     List<Element> findByTitreContainingIgnoreCase(String titre);
     
-    @Query("SELECT e FROM Element e WHERE e.module.id = :moduleId")
-    List<Element> findByModuleId(@Param("moduleId") Long moduleId);
+    List<Element> findByModuleIdModule(Long moduleId);
     
     @Query("SELECT e FROM Element e WHERE e.module.code = :moduleCode")
     List<Element> findByModuleCode(@Param("moduleCode") String moduleCode);
     
     boolean existsByCode(String code);
+    
+    boolean existsByCodeAndModuleIdModule(String code, Long moduleId);
+    
+    boolean existsByCodeAndModuleIdModuleAndIdElementNot(String code, Long moduleId, Long id);
     
     @Query("SELECT COUNT(e) FROM Element e WHERE e.module.id = :moduleId")
     long countByModuleId(@Param("moduleId") Long moduleId);

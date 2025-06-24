@@ -24,5 +24,7 @@ public interface NiveauRepository extends JpaRepository<Niveau, Long> {
     
     boolean existsByAlias(String alias);
     
+    boolean existsByAliasAndIdNiveauNot(String alias, Long id);
+    
     boolean existsByIdNiveau(Long idNiveau);
 }

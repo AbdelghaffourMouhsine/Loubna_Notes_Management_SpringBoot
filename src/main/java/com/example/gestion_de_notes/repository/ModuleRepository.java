@@ -16,13 +16,14 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
     
     List<Module> findByTitreContainingIgnoreCase(String titre);
     
-    @Query("SELECT m FROM Module m WHERE m.niveau.id = :niveauId")
-    List<Module> findByNiveauId(@Param("niveauId") Long niveauId);
+    List<Module> findByNiveauIdNiveau(Long niveauId);
     
     @Query("SELECT m FROM Module m WHERE m.niveau.alias = :niveauAlias")
     List<Module> findByNiveauAlias(@Param("niveauAlias") String niveauAlias);
     
     boolean existsByCode(String code);
+    
+    boolean existsByCodeAndIdModuleNot(String code, Long id);
     
     @Query("SELECT COUNT(m) FROM Module m WHERE m.niveau.id = :niveauId")
     long countByNiveauId(@Param("niveauId") Long niveauId);

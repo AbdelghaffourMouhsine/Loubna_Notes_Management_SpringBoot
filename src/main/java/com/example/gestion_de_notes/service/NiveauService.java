@@ -48,6 +48,10 @@ public class NiveauService {
         return niveauRepository.existsByAlias(alias);
     }
     
+    public boolean existsByAliasAndIdNot(String alias, Long id) {
+        return niveauRepository.existsByAliasAndIdNiveauNot(alias, id);
+    }
+    
     public boolean existsByIdNiveau(Long idNiveau) {
         return niveauRepository.existsByIdNiveau(idNiveau);
     }
@@ -65,7 +69,7 @@ public class NiveauService {
         dto.setAlias(niveau.getAlias());
         if (niveau.getNiveauSuivant() != null) {
             dto.setIdNiveauSuivant(niveau.getNiveauSuivant().getIdNiveau());
-            dto.setAliasNiveauSuivant(niveau.getNiveauSuivant().getAlias());
+            dto.setNiveauSuivantAlias(niveau.getNiveauSuivant().getAlias());
         }
         return dto;
     }

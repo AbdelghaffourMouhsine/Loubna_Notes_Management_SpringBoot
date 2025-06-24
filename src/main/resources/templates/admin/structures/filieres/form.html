@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head}">
+    <title>Formulaire Filière</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/structures/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-building"></i>
+                    <span th:text="${filiere.idFiliere != null ? 'Modifier la Filière' : 'Nouvelle Filière'}"></span>
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/structures/filieres}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Formulaire -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>
+                                <i class="bi bi-form"></i> 
+                                <span th:text="${filiere.idFiliere != null ? 'Modification' : 'Création'}"></span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="${filiere.idFiliere != null ? '/admin/structures/filieres/' + filiere.idFiliere : '/admin/structures/filieres'}" 
+                                  method="post" 
+                                  th:object="${filiere}">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="alias" class="form-label">
+                                            Alias <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="alias" 
+                                               th:field="*{alias}"
+                                               th:classappend="${#fields.hasErrors('alias')} ? 'is-invalid' : ''"
+                                               placeholder="Ex: GI1, GC2..."
+                                               required>
+                                        <div th:if="${#fields.hasErrors('alias')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{alias}"></div>
+                                        <div class="form-text">Code court unique pour identifier la filière</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="intitule" class="form-label">
+                                            Intitulé <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="intitule" 
+                                               th:field="*{intitule}"
+                                               th:classappend="${#fields.hasErrors('intitule')} ? 'is-invalid' : ''"
+                                               placeholder="Nom complet de la filière"
+                                               required>
+                                        <div th:if="${#fields.hasErrors('intitule')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{intitule}"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="anneeAccreditation" class="form-label">
+                                            Année d'Accréditation <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="anneeAccreditation" 
+                                               th:field="*{anneeAccreditation}"
+                                               th:classappend="${#fields.hasErrors('anneeAccreditation')} ? 'is-invalid' : ''"
+                                               min="2000" 
+                                               max="2050"
+                                               required>
+                                        <div th:if="${#fields.hasErrors('anneeAccreditation')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{anneeAccreditation}"></div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="anneeFinAccreditation" class="form-label">
+                                            Année de Fin d'Accréditation
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="anneeFinAccreditation" 
+                                               th:field="*{anneeFinAccreditation}"
+                                               th:classappend="${#fields.hasErrors('anneeFinAccreditation')} ? 'is-invalid' : ''"
+                                               min="2000" 
+                                               max="2050">
+                                        <div th:if="${#fields.hasErrors('anneeFinAccreditation')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{anneeFinAccreditation}"></div>
+                                        <div class="form-text">Laisser vide si la filière est toujours active</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="idCoordonnateur" class="form-label">
+                                        Coordonnateur
+                                    </label>
+                                    <select class="form-select" 
+                                            id="idCoordonnateur" 
+                                            th:field="*{idCoordonnateur}"
+                                            th:classappend="${#fields.hasErrors('idCoordonnateur')} ? 'is-invalid' : ''">
+                                        <option value="">Sélectionner un coordonnateur...</option>
+                                        <option th:each="enseignant : ${enseignants}" 
+                                                th:value="${enseignant.idPersonne}" 
+                                                th:text="${enseignant.nomComplet}"></option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('idCoordonnateur')}" 
+                                         class="invalid-feedback" 
+                                         th:errors="*{idCoordonnateur}"></div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/admin/structures/filieres}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> 
+                                        <span th:text="${filiere.idFiliere != null ? 'Modifier' : 'Créer'}"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>

@@ -53,6 +53,10 @@ public class FiliereService {
         return filiereRepository.existsByAlias(alias);
     }
     
+    public boolean existsByAliasAndIdNot(String alias, Long id) {
+        return filiereRepository.existsByAliasAndIdFiliereNot(alias, id);
+    }
+    
     public List<FiliereDTO> findByCoordonnateur(Long coordonnateurId) {
         return filiereRepository.findByCoordonnateur(coordonnateurId).stream()
                 .map(this::convertToDTO)

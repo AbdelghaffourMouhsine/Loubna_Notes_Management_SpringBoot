@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head}">
+    <title>Formulaire Niveau</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/structures/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-layers"></i>
+                    <span th:text="${niveau.idNiveau != null ? 'Modifier le Niveau' : 'Nouveau Niveau'}"></span>
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/structures/niveaux}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Formulaire -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>
+                                <i class="bi bi-form"></i> 
+                                <span th:text="${niveau.idNiveau != null ? 'Modification' : 'Création'}"></span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="${niveau.idNiveau != null ? '/admin/structures/niveaux/' + niveau.idNiveau : '/admin/structures/niveaux'}" 
+                                  method="post" 
+                                  th:object="${niveau}">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="idNiveau" class="form-label">
+                                            Identifiant <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="idNiveau" 
+                                               th:field="*{idNiveau}"
+                                               th:classappend="${#fields.hasErrors('idNiveau')} ? 'is-invalid' : ''"
+                                               placeholder="Ex: 1, 2, 3..."
+                                               required>
+                                        <div th:if="${#fields.hasErrors('idNiveau')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{idNiveau}"></div>
+                                        <div class="form-text">Identifiant unique numérique du niveau</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="alias" class="form-label">
+                                            Alias <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="alias" 
+                                               th:field="*{alias}"
+                                               th:classappend="${#fields.hasErrors('alias')} ? 'is-invalid' : ''"
+                                               placeholder="Ex: CP1, GI1, GC2..."
+                                               required>
+                                        <div th:if="${#fields.hasErrors('alias')}" 
+                                             class="invalid-feedback" 
+                                             th:errors="*{alias}"></div>
+                                        <div class="form-text">Code court unique pour identifier le niveau</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="libelle" class="form-label">
+                                        Libellé <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="libelle" 
+                                           th:field="*{libelle}"
+                                           th:classappend="${#fields.hasErrors('libelle')} ? 'is-invalid' : ''"
+                                           placeholder="Nom complet du niveau"
+                                           required>
+                                    <div th:if="${#fields.hasErrors('libelle')}" 
+                                         class="invalid-feedback" 
+                                         th:errors="*{libelle}"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="idNiveauSuivant" class="form-label">
+                                        Niveau Suivant
+                                    </label>
+                                    <select class="form-select" 
+                                            id="idNiveauSuivant" 
+                                            th:field="*{idNiveauSuivant}"
+                                            th:classappend="${#fields.hasErrors('idNiveauSuivant')} ? 'is-invalid' : ''">
+                                        <option value="">Aucun niveau suivant</option>
+                                        <option th:each="niv : ${niveauxSuivants}" 
+                                                th:value="${niv.idNiveau}" 
+                                                th:text="${niv.alias + ' - ' + niv.libelle}"
+                                                th:unless="${niv.idNiveau == niveau.idNiveau}"></option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('idNiveauSuivant')}" 
+                                         class="invalid-feedback" 
+                                         th:errors="*{idNiveauSuivant}"></div>
+                                    <div class="form-text">Le niveau vers lequel les étudiants passent ensuite</div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/admin/structures/niveaux}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> 
+                                        <span th:text="${niveau.idNiveau != null ? 'Modifier' : 'Créer'}"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>

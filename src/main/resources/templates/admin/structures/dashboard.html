@@ -31,29 +31,157 @@
                             Bienvenue, <span sec:authentication="principal.personne.nomComplet"></span>
                         </h5>
                         <p class="mb-0">Vous êtes connecté en tant qu'<strong>Administrateur des Structures Pédagogiques</strong>. 
-                           Cette section sera bientôt disponible pour gérer la structure pédagogique.</p>
+                           Gérez ici toute la structure pédagogique de l'établissement.</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Coming Soon -->
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card shadow text-center">
-                        <div class="card-body py-5">
-                            <i class="bi bi-building text-muted" style="font-size: 5rem;"></i>
-                            <h3 class="mt-3">Fonctionnalités en développement</h3>
-                            <p class="text-muted">
-                                Les fonctionnalités de gestion des structures pédagogiques seront bientôt disponibles. 
-                                Cette section permettra de :
-                            </p>
-                            <ul class="list-unstyled text-start mt-4">
-                                <li><i class="bi bi-check-circle text-success"></i> Gérer les filières et leurs niveaux</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Créer et modifier les modules</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Associer les éléments aux modules</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Affecter les enseignants</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Importer la structure depuis Excel</li>
-                            </ul>
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 th:text="${totalFilieres}">0</h4>
+                                    <p class="mb-0">Filières</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-building" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 th:text="${totalNiveaux}">0</h4>
+                                    <p class="mb-0">Niveaux</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-layers" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 th:text="${totalModules}">0</h4>
+                                    <p class="mb-0">Modules</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-book" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 th:text="${totalElements}">0</h4>
+                                    <p class="mb-0">Éléments</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-journal-text" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions rapides -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-lightning"></i> Actions rapides</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-building text-primary" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Gestion des Filières</h6>
+                                            <p class="text-muted small">Créer, modifier et gérer les filières</p>
+                                            <a th:href="@{/admin/structures/filieres}" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-success">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-layers text-success" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Gestion des Niveaux</h6>
+                                            <p class="text-muted small">Créer et organiser les niveaux</p>
+                                            <a th:href="@{/admin/structures/niveaux}" class="btn btn-success btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-warning">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-book text-warning" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Gestion des Modules</h6>
+                                            <p class="text-muted small">Créer et associer les modules</p>
+                                            <a th:href="@{/admin/structures/modules}" class="btn btn-warning btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-info">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-journal-text text-info" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Gestion des Éléments</h6>
+                                            <p class="text-muted small">Créer et gérer les éléments</p>
+                                            <a th:href="@{/admin/structures/elements}" class="btn btn-info btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-secondary">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-person-gear text-secondary" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Affectations Enseignants</h6>
+                                            <p class="text-muted small">Affecter les enseignants aux modules</p>
+                                            <a th:href="@{/admin/structures/affectations}" class="btn btn-secondary btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-dark">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-diagram-3 text-dark" style="font-size: 3rem;"></i>
+                                            <h6 class="mt-2">Structure Hiérarchique</h6>
+                                            <p class="text-muted small">Vue d'ensemble de la structure</p>
+                                            <a th:href="@{/admin/structures/structure}" class="btn btn-dark btn-sm">
+                                                <i class="bi bi-arrow-right"></i> Accéder
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -23,5 +23,5 @@ public class NiveauDTO {
     
     private Long idNiveauSuivant;
     
-    private String aliasNiveauSuivant;
+    private String niveauSuivantAlias;
 }

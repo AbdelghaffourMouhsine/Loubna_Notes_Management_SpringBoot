@@ -23,4 +23,6 @@ public interface FiliereRepository extends JpaRepository<Filiere, Long> {
     List<Filiere> findFilieresByAnnee(@Param("annee") Integer annee);
     
     boolean existsByAlias(String alias);
+    
+    boolean existsByAliasAndIdFiliereNot(String alias, Long id);
 }

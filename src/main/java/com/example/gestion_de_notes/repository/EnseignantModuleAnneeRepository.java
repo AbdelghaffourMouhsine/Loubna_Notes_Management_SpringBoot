@@ -11,6 +11,16 @@ import java.util.List;
 @Repository
 public interface EnseignantModuleAnneeRepository extends JpaRepository<EnseignantModuleAnnee, Long> {
     
+    List<EnseignantModuleAnnee> findByAnneeUniversitaire(String annee);
+    
+    List<EnseignantModuleAnnee> findByEnseignantIdPersonne(Long enseignantId);
+    
+    List<EnseignantModuleAnnee> findByModuleIdModule(Long moduleId);
+    
+    boolean existsByModuleIdModuleAndAnneeUniversitaire(Long moduleId, String anneeUniversitaire);
+    
+    boolean existsByElementIdElementAndAnneeUniversitaire(Long elementId, String anneeUniversitaire);
+    
     @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.enseignant.id = :enseignantId AND ema.anneeUniversitaire = :annee")
     List<EnseignantModuleAnnee> findByEnseignantAndAnnee(@Param("enseignantId") Long enseignantId, @Param("annee") String annee);
     
@@ -19,9 +29,6 @@ public interface EnseignantModuleAnneeRepository extends JpaRepository<Enseignan
     
     @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.element.id = :elementId AND ema.anneeUniversitaire = :annee")
     List<EnseignantModuleAnnee> findByElementAndAnnee(@Param("elementId") Long elementId, @Param("annee") String annee);
-    
-    @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.anneeUniversitaire = :annee")
-    List<EnseignantModuleAnnee> findByAnneeUniversitaire(@Param("annee") String annee);
     
     @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.enseignant.id = :enseignantId AND ema.module.id = :moduleId AND ema.anneeUniversitaire = :annee")
     List<EnseignantModuleAnnee> findByEnseignantModuleAndAnnee(@Param("enseignantId") Long enseignantId, @Param("moduleId") Long moduleId, @Param("annee") String annee);

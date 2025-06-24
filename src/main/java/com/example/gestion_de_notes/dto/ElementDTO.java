@@ -25,7 +25,7 @@ public class ElementDTO {
     @NotNull(message = "Le module est obligatoire")
     private Long idModule;
     
-    private String codeModule;
+    private String moduleCode;
     
-    private String titreModule;
+    private String moduleTitre;
 }

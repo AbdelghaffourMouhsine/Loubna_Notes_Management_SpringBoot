@@ -25,7 +25,7 @@ public class ModuleDTO {
     @NotNull(message = "Le niveau est obligatoire")
     private Long idNiveau;
     
-    private String aliasNiveau;
+    private String niveauAlias;
     
-    private String libelleNiveau;
+    private String niveauLibelle;
 }

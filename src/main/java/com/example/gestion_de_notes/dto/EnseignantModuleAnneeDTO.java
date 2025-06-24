@@ -16,20 +16,19 @@ public class EnseignantModuleAnneeDTO {
     @NotNull(message = "L'enseignant est obligatoire")
     private Long idEnseignant;
     
-    private String nomCompletEnseignant;
+    private String nomEnseignant;
     
-    @NotNull(message = "Le module est obligatoire")
     private Long idModule;
     
-    private String codeModule;
+    private String moduleCode;
     
-    private String titreModule;
+    private String moduleTitre;
     
     private Long idElement;
     
-    private String codeElement;
+    private String elementCode;
     
-    private String titreElement;
+    private String elementTitre;
     
     @NotBlank(message = "L'année universitaire est obligatoire")
     private String anneeUniversitaire;

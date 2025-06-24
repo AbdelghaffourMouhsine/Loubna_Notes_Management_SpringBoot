@@ -1,0 +1,56 @@
+                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Message si pas de modules -->
+                                                <div th:if="${niveau.modules == null or #lists.isEmpty(niveau.modules)}" 
+                                                     class="text-center text-muted py-2">
+                                                    <small><i class="bi bi-book"></i> Aucun module</small>
+                                                </div>
+                                                
+                                                <!-- Modules du niveau -->
+                                                <div th:if="${niveau.modules != null and not #lists.isEmpty(niveau.modules)}">
+                                                    <div th:each="module : ${niveau.modules}" class="mb-2">
+                                                        <div class="card border-warning">
+                                                            <div class="card-body py-2">
+                                                                <h6 class="card-title mb-1">
+                                                                    <i class="bi bi-book text-warning"></i>
+                                                                    <span th:text="${module.code}"></span> - <span th:text="${module.titre}"></span>
+                                                                </h6>
+                                                                
+                                                                <!-- Éléments du module -->
+                                                                <div th:if="${module.elements != null and not #lists.isEmpty(module.elements)}" 
+                                                                     class="mt-2">
+                                                                    <small class="text-muted">Éléments :</small>
+                                                                    <div class="ms-3">
+                                                                        <span th:each="element, iterStat : ${module.elements}">
+                                                                            <span class="badge bg-success me-1" th:text="${element.code}"></span>
+                                                                            <small th:text="${element.titre}"></small>
+                                                                            <span th:unless="${iterStat.last}">, </span>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div th:if="${module.elements == null or #lists.isEmpty(module.elements)}" 
+                                                                     class="mt-1">
+                                                                    <small class="text-muted"><i class="bi bi-journal-text"></i> Aucun élément</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>
