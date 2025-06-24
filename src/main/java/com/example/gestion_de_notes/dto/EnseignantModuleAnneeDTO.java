@@ -16,7 +16,11 @@ public class EnseignantModuleAnneeDTO {
     @NotNull(message = "L'enseignant est obligatoire")
     private Long idEnseignant;
     
-    private String nomEnseignant;
+    private String enseignantNom;
+    
+    private String enseignantPrenom;
+    
+    private String enseignantEmail;
     
     private Long idModule;
     

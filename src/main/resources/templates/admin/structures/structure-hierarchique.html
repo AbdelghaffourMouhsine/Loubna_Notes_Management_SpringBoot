@@ -1,38 +1,143 @@
-                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <!-- Message si pas de modules -->
-                                                <div th:if="${niveau.modules == null or #lists.isEmpty(niveau.modules)}" 
-                                                     class="text-center text-muted py-2">
-                                                    <small><i class="bi bi-book"></i> Aucun module</small>
-                                                </div>
-                                                
-                                                <!-- Modules du niveau -->
-                                                <div th:if="${niveau.modules != null and not #lists.isEmpty(niveau.modules)}">
-                                                    <div th:each="module : ${niveau.modules}" class="mb-2">
-                                                        <div class="card border-warning">
-                                                            <div class="card-body py-2">
-                                                                <h6 class="card-title mb-1">
-                                                                    <i class="bi bi-book text-warning"></i>
-                                                                    <span th:text="${module.code}"></span> - <span th:text="${module.titre}"></span>
-                                                                </h6>
-                                                                
-                                                                <!-- Éléments du module -->
-                                                                <div th:if="${module.elements != null and not #lists.isEmpty(module.elements)}" 
-                                                                     class="mt-2">
-                                                                    <small class="text-muted">Éléments :</small>
-                                                                    <div class="ms-3">
-                                                                        <span th:each="element, iterStat : ${module.elements}">
-                                                                            <span class="badge bg-success me-1" th:text="${element.code}"></span>
-                                                                            <small th:text="${element.titre}"></small>
-                                                                            <span th:unless="${iterStat.last}">, </span>
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                <div th:if="${module.elements == null or #lists.isEmpty(module.elements)}" 
-                                                                     class="mt-1">
-                                                                    <small class="text-muted"><i class="bi bi-journal-text"></i> Aucun élément</small>
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head}">
+    <title>Structure Hiérarchique</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/structures/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-diagram-3"></i> Structure Hiérarchique
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a th:href="@{/admin/structures/filieres/new}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Nouvelle Filière
+                        </a>
+                        <a th:href="@{/admin/structures/niveaux/new}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-plus-circle"></i> Nouveau Niveau
+                        </a>
+                        <a th:href="@{/admin/structures/modules/new}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-plus-circle"></i> Nouveau Module
+                        </a>
+                        <a th:href="@{/admin/structures/elements/new}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-plus-circle"></i> Nouvel Élément
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-building" style="font-size: 2rem;"></i>
+                                <div class="ms-3">
+                                    <h5 th:text="${#lists.size(filieres)}">0</h5>
+                                    <small>Filières</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-layers" style="font-size: 2rem;"></i>
+                                <div class="ms-3">
+                                    <h5 th:text="${#lists.size(niveaux)}">0</h5>
+                                    <small>Niveaux</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-book" style="font-size: 2rem;"></i>
+                                <div class="ms-3">
+                                    <h5 th:text="${#lists.size(modules)}">0</h5>
+                                    <small>Modules</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-puzzle" style="font-size: 2rem;"></i>
+                                <div class="ms-3">
+                                    <h5 th:text="${#lists.size(elements)}">0</h5>
+                                    <small>Éléments</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Structure hiérarchique -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-diagram-3"></i> Vue d'ensemble de la structure</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Message si aucune donnée -->
+                            <div th:if="${#lists.isEmpty(filieres) and #lists.isEmpty(niveaux)}" 
+                                 class="text-center text-muted py-5">
+                                <i class="bi bi-diagram-3" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">Aucune structure trouvée</h5>
+                                <p>Commencez par créer des filières et des niveaux.</p>
+                            </div>
+                            
+                            <!-- Affichage par niveaux -->
+                            <div th:if="${not #lists.isEmpty(niveaux)}">
+                                <div th:each="niveau : ${niveaux}" class="mb-4">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-layers"></i>
+                                                <span th:text="${niveau.alias}"></span> - <span th:text="${niveau.libelle}"></span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <!-- Modules du niveau -->
+                                            <div class="row">
+                                                <div th:each="module : ${modules}" class="col-md-6 mb-3">
+                                                    <div th:if="${module.idNiveau == niveau.idNiveau}" class="card border-warning">
+                                                        <div class="card-header bg-warning text-dark">
+                                                            <h6 class="mb-0">
+                                                                <i class="bi bi-book"></i>
+                                                                <span th:text="${module.code}"></span> - <span th:text="${module.titre}"></span>
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <!-- Éléments du module -->
+                                                            <div th:each="element : ${elements}" class="mb-2">
+                                                                <div th:if="${element.idModule == module.idModule}">
+                                                                    <span class="badge bg-success me-2">
+                                                                        <i class="bi bi-puzzle"></i> <span th:text="${element.code}"></span>
+                                                                    </span>
+                                                                    <small th:text="${element.titre}"></small>
                                                                 </div>
                                                             </div>
                                                         </div>

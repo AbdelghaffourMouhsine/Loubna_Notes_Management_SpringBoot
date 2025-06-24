@@ -2,7 +2,7 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" 
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head}">
-    <title>Nouvelle Affectation</title>
+    <title>Formulaire Affectation</title>
 </head>
 <body>
     <!-- Navbar -->
@@ -17,14 +17,27 @@
             <!-- Header -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
-                    <i class="bi bi-person-gear"></i>
-                    Nouvelle Affectation Enseignant
+                    <i class="bi bi-person-workspace"></i>
+                    <span th:text="${affectation.id != null ? 'Modifier l''Affectation' : 'Nouvelle Affectation'}"></span>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/admin/structures/affectations(anneeUniversitaire=${affectation.anneeUniversitaire})}" class="btn btn-outline-secondary">
+                    <a th:href="@{/admin/structures/affectations}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left"></i> Retour à la liste
                     </a>
                 </div>
+            </div>
+            
+            <!-- Messages d'alerte -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             
             <!-- Formulaire -->
@@ -32,23 +45,15 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="bi bi-form"></i> Création d'affectation</h5>
+                            <h5>
+                                <i class="bi bi-form"></i> 
+                                <span th:text="${affectation.id != null ? 'Modification' : 'Création'}"></span>
+                            </h5>
                         </div>
                         <div class="card-body">
-                            <form th:action="@{/admin/structures/affectations}" 
+                            <form th:action="${affectation.id != null ? '/admin/structures/affectations/' + affectation.id : '/admin/structures/affectations'}" 
                                   method="post" 
                                   th:object="${affectation}">
-                                
-                                <div class="mb-3">
-                                    <label for="anneeUniversitaire" class="form-label">
-                                        Année Universitaire <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="anneeUniversitaire" 
-                                           th:field="*{anneeUniversitaire}"
-                                           readonly>
-                                </div>
                                 
                                 <div class="mb-3">
                                     <label for="idEnseignant" class="form-label">
@@ -62,7 +67,7 @@
                                         <option value="">Sélectionner un enseignant...</option>
                                         <option th:each="enseignant : ${enseignants}" 
                                                 th:value="${enseignant.idPersonne}" 
-                                                th:text="${enseignant.nomComplet}"></option>
+                                                th:text="${enseignant.nom + ' ' + enseignant.prenom + ' (' + enseignant.email + ')'}"></option>
                                     </select>
                                     <div th:if="${#fields.hasErrors('idEnseignant')}" 
                                          class="invalid-feedback" 
@@ -70,48 +75,65 @@
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="idModule" class="form-label">
-                                        Module <span class="text-danger">*</span>
+                                    <label for="anneeUniversitaire" class="form-label">
+                                        Année Universitaire <span class="text-danger">*</span>
                                     </label>
-                                    <select class="form-select" 
-                                            id="idModule" 
-                                            th:field="*{idModule}"
-                                            th:classappend="${#fields.hasErrors('idModule')} ? 'is-invalid' : ''"
-                                            onchange="loadElements(this.value)"
-                                            required>
-                                        <option value="">Sélectionner un module...</option>
-                                        <option th:each="module : ${modules}" 
-                                                th:value="${module.idModule}" 
-                                                th:text="${module.code + ' - ' + module.titre}"></option>
-                                    </select>
-                                    <div th:if="${#fields.hasErrors('idModule')}" 
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="anneeUniversitaire" 
+                                           th:field="*{anneeUniversitaire}"
+                                           th:classappend="${#fields.hasErrors('anneeUniversitaire')} ? 'is-invalid' : ''"
+                                           placeholder="Ex: 2024/2025"
+                                           required>
+                                    <div th:if="${#fields.hasErrors('anneeUniversitaire')}" 
                                          class="invalid-feedback" 
-                                         th:errors="*{idModule}"></div>
-                                    <div class="form-text">Sélectionnez le module à affecter</div>
+                                         th:errors="*{anneeUniversitaire}"></div>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label for="idElement" class="form-label">
-                                        Élément (optionnel)
-                                    </label>
-                                    <select class="form-select" 
-                                            id="idElement" 
-                                            th:field="*{idElement}"
-                                            th:classappend="${#fields.hasErrors('idElement')} ? 'is-invalid' : ''">
-                                        <option value="">Module complet</option>
-                                    </select>
-                                    <div th:if="${#fields.hasErrors('idElement')}" 
-                                         class="invalid-feedback" 
-                                         th:errors="*{idElement}"></div>
-                                    <div class="form-text">Laissez vide pour affecter à tout le module, ou sélectionnez un élément spécifique</div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="idModule" class="form-label">
+                                            Module (optionnel)
+                                        </label>
+                                        <select class="form-select" 
+                                                id="idModule" 
+                                                th:field="*{idModule}">
+                                            <option value="">Sélectionner un module...</option>
+                                            <option th:each="module : ${modules}" 
+                                                    th:value="${module.idModule}" 
+                                                    th:text="${module.code + ' - ' + module.titre}"></option>
+                                        </select>
+                                        <div class="form-text">Si défini, l'enseignant sera responsable de tout le module</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="idElement" class="form-label">
+                                            Élément (optionnel)
+                                        </label>
+                                        <select class="form-select" 
+                                                id="idElement" 
+                                                th:field="*{idElement}">
+                                            <option value="">Sélectionner un élément...</option>
+                                            <option th:each="element : ${elements}" 
+                                                    th:value="${element.idElement}" 
+                                                    th:text="${element.code + ' - ' + element.titre}"></option>
+                                        </select>
+                                        <div class="form-text">Si défini, l'enseignant sera responsable de cet élément uniquement</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Note :</strong> Vous devez spécifier soit un module soit un élément, mais pas les deux.
                                 </div>
                                 
                                 <div class="d-flex justify-content-between">
-                                    <a th:href="@{/admin/structures/affectations(anneeUniversitaire=${affectation.anneeUniversitaire})}" class="btn btn-secondary">
+                                    <a th:href="@{/admin/structures/affectations}" class="btn btn-secondary">
                                         <i class="bi bi-x-circle"></i> Annuler
                                     </a>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-check-circle"></i> Créer l'affectation
+                                        <i class="bi bi-check-circle"></i> 
+                                        <span th:text="${affectation.id != null ? 'Modifier' : 'Créer'}"></span>
                                     </button>
                                 </div>
                             </form>
@@ -124,29 +146,5 @@
     
     <!-- Scripts -->
     <div th:replace="~{fragments/scripts :: scripts}"></div>
-    <script>
-        function loadElements(moduleId) {
-            const elementSelect = document.getElementById('idElement');
-            
-            // Vider la liste des éléments
-            elementSelect.innerHTML = '<option value="">Module complet</option>';
-            
-            if (moduleId) {
-                fetch(`/admin/structures/api/elements/by-module/${moduleId}`)
-                    .then(response => response.json())
-                    .then(elements => {
-                        elements.forEach(element => {
-                            const option = document.createElement('option');
-                            option.value = element.idElement;
-                            option.textContent = `${element.code} - ${element.titre}`;
-                            elementSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors du chargement des éléments:', error);
-                    });
-            }
-        }
-    </script>
 </body>
 </html>

@@ -87,7 +87,9 @@ public class EnseignantModuleAnneeService {
         
         if (entity.getEnseignant() != null) {
             dto.setIdEnseignant(entity.getEnseignant().getIdPersonne());
-            dto.setNomEnseignant(entity.getEnseignant().getNomComplet());
+            dto.setEnseignantNom(entity.getEnseignant().getNom());
+            dto.setEnseignantPrenom(entity.getEnseignant().getPrenom());
+            dto.setEnseignantEmail(entity.getEnseignant().getEmail());
         }
         
         if (entity.getModule() != null) {

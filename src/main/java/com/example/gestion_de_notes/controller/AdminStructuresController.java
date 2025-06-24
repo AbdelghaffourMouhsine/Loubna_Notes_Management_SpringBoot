@@ -50,6 +50,21 @@ public class AdminStructuresController {
         model.addAttribute("totalElements", elementService.findAll().size());
         
         return "admin/structures/dashboard";
+    }
+    
+    @GetMapping("/structure")
+    public String structureHierarchique(Model model) {
+        List<FiliereDTO> filieres = filiereService.findAll();
+        List<NiveauDTO> niveaux = niveauService.findAll();
+        List<ModuleDTO> modules = moduleService.findAll();
+        List<ElementDTO> elements = elementService.findAll();
+        
+        model.addAttribute("filieres", filieres);
+        model.addAttribute("niveaux", niveaux);
+        model.addAttribute("modules", modules);
+        model.addAttribute("elements", elements);
+        
+        return "admin/structures/structure-hierarchique";
     }    
     // ===============================
     // GESTION DES FILIERES
@@ -222,5 +237,227 @@ public class AdminStructuresController {
         List<ModuleDTO> modules = moduleService.findAll();
         model.addAttribute("modules", modules);
         return "admin/structures/modules/list";
+    }
+    
+    @GetMapping("/modules/new")
+    public String showCreateModuleForm(Model model) {
+        model.addAttribute("module", new ModuleDTO());
+        model.addAttribute("niveaux", niveauService.findAll());
+        model.addAttribute("enseignants", personneService.findAll());
+        return "admin/structures/modules/form";
+    }
+    
+    @PostMapping("/modules")
+    public String createModule(@Valid @ModelAttribute("module") ModuleDTO moduleDTO,
+                              BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (moduleService.existsByCode(moduleDTO.getCode())) {
+            result.rejectValue("code", "error.module", "Ce code existe déjà");
+        }
+        
+        if (result.hasErrors()) {
+            model.addAttribute("niveaux", niveauService.findAll());
+            model.addAttribute("enseignants", personneService.findAll());
+            return "admin/structures/modules/form";
+        }
+        
+        moduleService.save(moduleDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Module créé avec succès");
+        return "redirect:/admin/structures/modules";
+    }
+    
+    @GetMapping("/modules/{id}/edit")
+    public String showEditModuleForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<ModuleDTO> module = moduleService.findById(id);
+        if (module.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Module non trouvé");
+            return "redirect:/admin/structures/modules";
+        }
+        
+        model.addAttribute("module", module.get());
+        model.addAttribute("niveaux", niveauService.findAll());
+        model.addAttribute("enseignants", personneService.findAll());
+        return "admin/structures/modules/form";
+    }
+    
+    @PostMapping("/modules/{id}")
+    public String updateModule(@PathVariable Long id, @Valid @ModelAttribute("module") ModuleDTO moduleDTO,
+                              BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (moduleService.existsByCodeAndIdNot(moduleDTO.getCode(), id)) {
+            result.rejectValue("code", "error.module", "Ce code existe déjà");
+        }
+        
+        if (result.hasErrors()) {
+            model.addAttribute("niveaux", niveauService.findAll());
+            model.addAttribute("enseignants", personneService.findAll());
+            return "admin/structures/modules/form";
+        }
+        
+        moduleDTO.setIdModule(id);
+        moduleService.save(moduleDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Module modifié avec succès");
+        return "redirect:/admin/structures/modules";
+    }
+    
+    @PostMapping("/modules/{id}/delete")
+    public String deleteModule(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            moduleService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Module supprimé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer ce module. Il est peut-être utilisé.");
+        }
+        return "redirect:/admin/structures/modules";
+    }
+    
+    // ===============================
+    // GESTION DES ELEMENTS
+    // ===============================
+    
+    @GetMapping("/elements")
+    public String listElements(Model model) {
+        List<ElementDTO> elements = elementService.findAll();
+        model.addAttribute("elements", elements);
+        return "admin/structures/elements/list";
+    }
+    
+    @GetMapping("/elements/new")
+    public String showCreateElementForm(Model model) {
+        model.addAttribute("element", new ElementDTO());
+        model.addAttribute("modules", moduleService.findAll());
+        return "admin/structures/elements/form";
+    }
+    
+    @PostMapping("/elements")
+    public String createElement(@Valid @ModelAttribute("element") ElementDTO elementDTO,
+                               BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (result.hasErrors()) {
+            model.addAttribute("modules", moduleService.findAll());
+            return "admin/structures/elements/form";
+        }
+        
+        elementService.save(elementDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Élément créé avec succès");
+        return "redirect:/admin/structures/elements";
+    }
+    
+    @GetMapping("/elements/{id}/edit")
+    public String showEditElementForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<ElementDTO> element = elementService.findById(id);
+        if (element.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Élément non trouvé");
+            return "redirect:/admin/structures/elements";
+        }
+        
+        model.addAttribute("element", element.get());
+        model.addAttribute("modules", moduleService.findAll());
+        return "admin/structures/elements/form";
+    }
+    
+    @PostMapping("/elements/{id}")
+    public String updateElement(@PathVariable Long id, @Valid @ModelAttribute("element") ElementDTO elementDTO,
+                               BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (result.hasErrors()) {
+            model.addAttribute("modules", moduleService.findAll());
+            return "admin/structures/elements/form";
+        }
+        
+        elementDTO.setIdElement(id);
+        elementService.save(elementDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Élément modifié avec succès");
+        return "redirect:/admin/structures/elements";
+    }
+    
+    @PostMapping("/elements/{id}/delete")
+    public String deleteElement(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            elementService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Élément supprimé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer cet élément. Il est peut-être utilisé.");
+        }
+        return "redirect:/admin/structures/elements";
+    }
+    
+    // ===============================
+    // GESTION DES AFFECTATIONS
+    // ===============================
+    
+    @GetMapping("/affectations")
+    public String listAffectations(Model model) {
+        List<EnseignantModuleAnneeDTO> affectations = enseignantModuleAnneeService.findAll();
+        model.addAttribute("affectations", affectations);
+        return "admin/structures/affectations/list";
+    }
+    
+    @GetMapping("/affectations/new")
+    public String showCreateAffectationForm(Model model) {
+        model.addAttribute("affectation", new EnseignantModuleAnneeDTO());
+        model.addAttribute("enseignants", personneService.findAll());
+        model.addAttribute("modules", moduleService.findAll());
+        model.addAttribute("elements", elementService.findAll());
+        return "admin/structures/affectations/form";
+    }
+    
+    @PostMapping("/affectations")
+    public String createAffectation(@Valid @ModelAttribute("affectation") EnseignantModuleAnneeDTO affectationDTO,
+                                   BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (result.hasErrors()) {
+            model.addAttribute("enseignants", personneService.findAll());
+            model.addAttribute("modules", moduleService.findAll());
+            model.addAttribute("elements", elementService.findAll());
+            return "admin/structures/affectations/form";
+        }
+        
+        enseignantModuleAnneeService.save(affectationDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Affectation créée avec succès");
+        return "redirect:/admin/structures/affectations";
+    }
+    
+    @GetMapping("/affectations/{id}/edit")
+    public String showEditAffectationForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<EnseignantModuleAnneeDTO> affectation = enseignantModuleAnneeService.findById(id);
+        if (affectation.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Affectation non trouvée");
+            return "redirect:/admin/structures/affectations";
+        }
+        
+        model.addAttribute("affectation", affectation.get());
+        model.addAttribute("enseignants", personneService.findAll());
+        model.addAttribute("modules", moduleService.findAll());
+        model.addAttribute("elements", elementService.findAll());
+        return "admin/structures/affectations/form";
+    }
+    
+    @PostMapping("/affectations/{id}")
+    public String updateAffectation(@PathVariable Long id, @Valid @ModelAttribute("affectation") EnseignantModuleAnneeDTO affectationDTO,
+                                   BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        if (result.hasErrors()) {
+            model.addAttribute("enseignants", personneService.findAll());
+            model.addAttribute("modules", moduleService.findAll());
+            model.addAttribute("elements", elementService.findAll());
+            return "admin/structures/affectations/form";
+        }
+        
+        affectationDTO.setId(id);
+        enseignantModuleAnneeService.save(affectationDTO);
+        redirectAttributes.addFlashAttribute("successMessage", "Affectation modifiée avec succès");
+        return "redirect:/admin/structures/affectations";
+    }
+    
+    @PostMapping("/affectations/{id}/delete")
+    public String deleteAffectation(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            enseignantModuleAnneeService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Affectation supprimée avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer cette affectation.");
+        }
+        return "redirect:/admin/structures/affectations";
     }
 }
