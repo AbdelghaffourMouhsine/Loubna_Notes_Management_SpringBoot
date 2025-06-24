@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Ajouter Personne - Administration des Utilisateurs</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-admin-user}"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-person-plus"></i>
+                    Ajouter une Nouvelle Personne
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/users/personnes/search}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour à la recherche
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Form -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Informations de la Personne</h6>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/admin/users/personnes/create}" method="post" th:object="${personneDTO}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nom" class="form-label">Nom *</label>
+                                        <input type="text" class="form-control" 
+                                               th:field="*{nom}" 
+                                               th:classappend="${#fields.hasErrors('nom')} ? 'is-invalid' : ''"
+                                               id="nom" required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('nom')}" 
+                                             th:errors="*{nom}"></div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="prenom" class="form-label">Prénom *</label>
+                                        <input type="text" class="form-control" 
+                                               th:field="*{prenom}" 
+                                               th:classappend="${#fields.hasErrors('prenom')} ? 'is-invalid' : ''"
+                                               id="prenom" required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('prenom')}" 
+                                             th:errors="*{prenom}"></div>
+                                    </div>
+                                </div>
+                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cin" class="form-label">CIN *</label>
+                                        <input type="text" class="form-control" 
+                                               th:field="*{cin}" 
+                                               th:classappend="${#fields.hasErrors('cin')} ? 'is-invalid' : ''"
+                                               id="cin" required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('cin')}" 
+                                             th:errors="*{cin}"></div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" 
+                                               th:field="*{email}" 
+                                               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                                               id="email">
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" 
+                                             th:errors="*{email}"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="telephone" class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control" 
+                                               th:field="*{telephone}" 
+                                               th:classappend="${#fields.hasErrors('telephone')} ? 'is-invalid' : ''"
+                                               id="telephone">
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('telephone')}" 
+                                             th:errors="*{telephone}"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle"></i>
+                                            <strong>Information :</strong> Après avoir créé cette personne, vous pourrez lui créer un ou plusieurs comptes utilisateurs.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between">
+                                            <a th:href="@{/admin/users/personnes/search}" class="btn btn-secondary">
+                                                <i class="bi bi-x-circle"></i> Annuler
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-check-circle"></i> Créer la Personne
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>

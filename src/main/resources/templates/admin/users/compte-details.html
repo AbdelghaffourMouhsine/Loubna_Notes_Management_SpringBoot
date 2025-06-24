@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Détails du Compte - Administration des Utilisateurs</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-admin-user}"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-person-circle"></i>
+                    Détails du Compte
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/users/dashboard}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour au dashboard
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- New Password Alert -->
+            <div th:if="${newPassword}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                <h5><i class="bi bi-key"></i> Nouveau mot de passe généré :</h5>
+                <div class="input-group">
+                    <input type="text" class="form-control" th:value="${newPassword}" readonly id="newPasswordField">
+                    <button class="btn btn-outline-secondary" type="button" 
+                            onclick="copyToClipboard(document.getElementById('newPasswordField').value)">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+                <small class="form-text text-muted">Veuillez noter ce mot de passe et le communiquer à l'utilisateur de manière sécurisée.</small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- New Account Info -->
+            <div th:if="${newCompte}" class="alert alert-success" role="alert">
+                <h5><i class="bi bi-check-circle"></i> Compte créé avec succès !</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Login :</strong> <span th:text="${newCompte.login}"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Mot de passe :</strong> 
+                        <span th:text="${newCompte.motDePasseGenere}"></span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                th:onclick="'copyToClipboard(\'' + ${newCompte.motDePasseGenere} + '\')'">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Account Details -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Informations du Compte</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-3"><strong>Login :</strong></div>
+                                <div class="col-md-9" th:text="${compte.login}"></div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3"><strong>Personne :</strong></div>
+                                <div class="col-md-9">
+                                    <span th:text="${compte.nomCompletPersonne}"></span><br>
+                                    <small class="text-muted">CIN: <span th:text="${compte.cinPersonne}"></span></small>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3"><strong>Rôle :</strong></div>
+                                <div class="col-md-9">
+                                    <span class="badge bg-info fs-6" th:text="${compte.roleDisplayName}"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3"><strong>Statut :</strong></div>
+                                <div class="col-md-9">
+                                    <span th:if="${compte.enabled}" class="badge bg-success">Actif</span>
+                                    <span th:unless="${compte.enabled}" class="badge bg-danger">Inactif</span>
+                                    <span th:if="${compte.locked}" class="badge bg-warning ms-2">Verrouillé</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Change Role -->
+                            <form th:action="@{/admin/users/comptes/{id}/update-role(id=${compte.idCompte})}" 
+                                  method="post" class="mb-3">
+                                <label class="form-label">Changer le rôle :</label>
+                                <div class="input-group">
+                                    <select class="form-select" name="role" required>
+                                        <option th:each="role : ${roles}" 
+                                                th:value="${role}" 
+                                                th:text="${role.displayName}"
+                                                th:selected="${role == compte.role}"
+                                                th:disabled="${role.name() == 'ADMIN_USER' and compte.role.name() != 'ADMIN_USER'}">
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Reset Password -->
+                            <form th:action="@{/admin/users/comptes/{id}/reset-password(id=${compte.idCompte})}" 
+                                  method="post" class="mb-3"
+                                  onsubmit="return confirmAction('Êtes-vous sûr de vouloir réinitialiser le mot de passe ?')">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="bi bi-key"></i> Réinitialiser mot de passe
+                                </button>
+                            </form>
+                            
+                            <!-- Toggle Enabled -->
+                            <form th:action="@{/admin/users/comptes/{id}/toggle-enabled(id=${compte.idCompte})}" 
+                                  method="post" class="mb-3">
+                                <button type="submit" 
+                                        th:class="${compte.enabled} ? 'btn btn-danger w-100' : 'btn btn-success w-100'">
+                                    <i th:class="${compte.enabled} ? 'bi bi-x-circle' : 'bi bi-check-circle'"></i>
+                                    <span th:text="${compte.enabled} ? 'Désactiver' : 'Activer'"></span>
+                                </button>
+                            </form>
+                            
+                            <!-- Toggle Locked -->
+                            <form th:action="@{/admin/users/comptes/{id}/toggle-locked(id=${compte.idCompte})}" 
+                                  method="post">
+                                <button type="submit" 
+                                        th:class="${compte.locked} ? 'btn btn-info w-100' : 'btn btn-warning w-100'">
+                                    <i th:class="${compte.locked} ? 'bi bi-unlock' : 'bi bi-lock'"></i>
+                                    <span th:text="${compte.locked} ? 'Déverrouiller' : 'Verrouiller'"></span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>

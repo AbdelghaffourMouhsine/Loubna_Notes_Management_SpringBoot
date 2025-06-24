@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Rechercher Personnes - Administration des Utilisateurs</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-admin-user}"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-search"></i>
+                    Rechercher Personnes
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/users/personnes/new}" class="btn btn-success">
+                        <i class="bi bi-person-plus"></i> Ajouter Personne
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Critères de Recherche</h6>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/admin/users/personnes/search}" method="get" class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="searchTerm" class="form-label">Recherche globale</label>
+                                    <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                                           th:value="${searchTerm}" 
+                                           placeholder="Nom, prénom ou CIN...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="nom" class="form-label">Nom</label>
+                                    <input type="text" class="form-control" id="nom" name="nom" 
+                                           th:value="${nom}" placeholder="Nom...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="cin" class="form-label">CIN</label>
+                                    <input type="text" class="form-control" id="cin" name="cin" 
+                                           th:value="${cin}" placeholder="CIN...">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-search"></i> Rechercher
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-people"></i>
+                                Résultats de la recherche (<span th:text="${#lists.size(personnes)}">0</span> personne(s))
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>CIN</th>
+                                            <th>Nom Complet</th>
+                                            <th>Email</th>
+                                            <th>Téléphone</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="personne : ${personnes}">
+                                            <td th:text="${personne.cin}"></td>
+                                            <td th:text="${personne.nomComplet}"></td>
+                                            <td th:text="${personne.email ?: 'Non renseigné'}"></td>
+                                            <td th:text="${personne.telephone ?: 'Non renseigné'}"></td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a th:href="@{/admin/users/comptes/create(personneId=${personne.idPersonne})}" 
+                                                       class="btn btn-sm btn-success" title="Créer un compte">
+                                                        <i class="bi bi-person-plus"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-info" title="Voir détails" 
+                                                            th:onclick="'showPersonneDetails(' + ${personne.idPersonne} + ')'">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(personnes)}">
+                                            <td colspan="5" class="text-center">
+                                                <div class="py-4">
+                                                    <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                                                    <p class="text-muted mt-2">Aucune personne trouvée</p>
+                                                    <a th:href="@{/admin/users/personnes/new}" class="btn btn-primary">
+                                                        <i class="bi bi-person-plus"></i> Ajouter une nouvelle personne
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        function showPersonneDetails(personneId) {
+            // For now, just redirect to create account page
+            window.location.href = '/admin/users/comptes/create?personneId=' + personneId;
+        }
+    </script>
+</body>
+</html>

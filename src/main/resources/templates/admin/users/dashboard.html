@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head}">
+    <title>Dashboard - Administration des Utilisateurs</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-admin-user}"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard - Administration des Utilisateurs
+                </h1>
+            </div>
+            
+            <!-- Welcome Message -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-primary">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-person-circle"></i>
+                            Bienvenue, <span sec:authentication="principal.personne.nomComplet"></span>
+                        </h5>
+                        <p class="mb-0">Vous êtes connecté en tant qu'<strong>Administrateur des Utilisateurs</strong>. 
+                           Vous pouvez gérer les comptes utilisateurs et les personnes dans le système.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Comptes
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalComptes}">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-people text-gray-300" style="font-size: 2em;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-lightning"></i>
+                                Actions Rapides
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <a th:href="@{/admin/users/personnes/search}" class="btn btn-outline-primary btn-lg w-100">
+                                        <i class="bi bi-search"></i><br>
+                                        Rechercher Personnes
+                                    </a>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <a th:href="@{/admin/users/personnes/new}" class="btn btn-outline-success btn-lg w-100">
+                                        <i class="bi bi-person-plus"></i><br>
+                                        Ajouter Personne
+                                    </a>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <a href="#" class="btn btn-outline-info btn-lg w-100" onclick="scrollToComptes()">
+                                        <i class="bi bi-list"></i><br>
+                                        Voir tous les Comptes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Accounts Table -->
+            <div class="row" id="comptes-section">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-people"></i>
+                                Comptes Utilisateurs
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Login</th>
+                                            <th>Personne</th>
+                                            <th>Rôle</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="compte : ${comptes}">
+                                            <td th:text="${compte.login}"></td>
+                                            <td>
+                                                <span th:text="${compte.personne.nomComplet}"></span><br>
+                                                <small class="text-muted" th:text="${compte.personne.cin}"></small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info" th:text="${compte.roleDisplayName}"></span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${compte.enabled}" class="badge bg-success">Actif</span>
+                                                <span th:unless="${compte.enabled}" class="badge bg-danger">Inactif</span>
+                                                <span th:if="${compte.locked}" class="badge bg-warning">Verrouillé</span>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{/admin/users/comptes/{id}(id=${compte.idCompte})}" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(comptes)}">
+                                            <td colspan="5" class="text-center">Aucun compte trouvé</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        function scrollToComptes() {
+            document.getElementById('comptes-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+    </script>
+</body>
+</html>
