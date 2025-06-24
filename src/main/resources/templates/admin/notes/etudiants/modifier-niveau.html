@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier le Niveau - Étudiant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Navigation -->
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/notes/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/notes/etudiants">
+                                <i class="fas fa-user-graduate"></i> Étudiants
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main class="col-md-10 ml-sm-auto px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Modifier le niveau de l'étudiant</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{/admin/notes/etudiants/{id}(id=${etudiant.idEtudiant})}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left"></i> Retour au détail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Informations de l'étudiant -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-graduate"></i> 
+                            Informations de l'étudiant
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>CNE:</strong>
+                                <p th:text="${etudiant.cne}"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Nom:</strong>
+                                <p th:text="${etudiant.nom}"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Prénom:</strong>
+                                <p th:text="${etudiant.prenom}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avertissement -->
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Attention</h6>
+                    <p class="mb-0">
+                        La modification du niveau d'un étudiant doit respecter les règles pédagogiques. 
+                        Assurez-vous que le nouveau niveau est cohérent avec les résultats obtenus précédemment.
+                    </p>
+                </div>
+
+                <!-- Formulaire de modification du niveau -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-level-up-alt"></i> 
+                            Nouvelle inscription
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/notes/etudiants/{id}/modifier-niveau(id=${etudiant.idEtudiant})}" 
+                              method="post">
+                            <!-- Token CSRF requis par Spring Security -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nouveauNiveauId" class="form-label">Nouveau Niveau *</label>
+                                        <select class="form-select" id="nouveauNiveauId" name="nouveauNiveauId" required>
+                                            <option value="">Sélectionner un niveau</option>
+                                            <option th:each="niveau : ${niveaux}" 
+                                                    th:value="${niveau.idNiveau}" 
+                                                    th:text="${niveau.alias + ' - ' + niveau.libelle}">
+                                            </option>
+                                        </select>
+                                        <div class="form-text">
+                                            Choisissez le niveau dans lequel l'étudiant sera inscrit.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="anneeUniversitaire" class="form-label">Année Universitaire *</label>
+                                        <input type="text" class="form-control" id="anneeUniversitaire" 
+                                               name="anneeUniversitaire" 
+                                               th:value="${#dates.year(#dates.createNow())} + '/' + (${#dates.year(#dates.createNow())} + 1)"
+                                               placeholder="2024/2025" required>
+                                        <div class="form-text">
+                                            Format: AAAA/AAAA (ex: 2024/2025)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Information sur l'action -->
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Information</h6>
+                                <ul class="mb-0">
+                                    <li>Une nouvelle inscription sera créée pour l'année universitaire spécifiée</li>
+                                    <li>L'étudiant sera automatiquement inscrit dans tous les modules du niveau choisi</li>
+                                    <li>Cette action sera enregistrée dans le journal de l'application</li>
+                                    <li>L'inscription précédente sera conservée dans l'historique</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/admin/notes/etudiants/{id}(id=${etudiant.idEtudiant})}" 
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-warning" onclick="return confirmModification()">
+                                    <i class="fas fa-level-up-alt"></i> Modifier le niveau
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Règles de gestion -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-book"></i> 
+                            Règles de gestion
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Cas autorisés :</h6>
+                                <ul class="small">
+                                    <li>Passage au niveau suivant après validation</li>
+                                    <li>Redoublement dans le même niveau</li>
+                                    <li>Transfert entre filières de même niveau</li>
+                                    <li>Inscription d'ajournés avec modules supplémentaires</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-danger">Cas interdits :</h6>
+                                <ul class="small">
+                                    <li>Retour à un niveau inférieur déjà validé</li>
+                                    <li>Saut de niveau sans validation préalable</li>
+                                    <li>Inscription dans un niveau non accessible</li>
+                                    <li>Modification rétroactive sur année clôturée</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmModification() {
+            const niveau = document.getElementById('nouveauNiveauId');
+            const annee = document.getElementById('anneeUniversitaire');
+            
+            if (!niveau.value || !annee.value) {
+                alert('Veuillez remplir tous les champs obligatoires.');
+                return false;
+            }
+            
+            const niveauText = niveau.options[niveau.selectedIndex].text;
+            
+            return confirm(`Êtes-vous sûr de vouloir inscrire l'étudiant [[${etudiant.nomComplet}]] dans le niveau "${niveauText}" pour l'année ${annee.value} ?`);
+        }
+
+        // Validation du format de l'année universitaire
+        document.getElementById('anneeUniversitaire').addEventListener('blur', function() {
+            const value = this.value;
+            const pattern = /^\d{4}\/\d{4}$/;
+            
+            if (value && !pattern.test(value)) {
+                this.classList.add('is-invalid');
+                this.setCustomValidity('Format attendu: AAAA/AAAA (ex: 2024/2025)');
+            } else {
+                this.classList.remove('is-invalid');
+                this.setCustomValidity('');
+            }
+        });
+
+        // Auto-complétion de l'année universitaire
+        document.getElementById('anneeUniversitaire').addEventListener('input', function() {
+            let value = this.value.replace(/[^\d]/g, ''); // Garder seulement les chiffres
+            
+            if (value.length >= 4) {
+                const year1 = value.substring(0, 4);
+                const year2 = parseInt(year1) + 1;
+                this.value = year1 + '/' + year2;
+            }
+        });
+    </script>
+</body>
+</html>

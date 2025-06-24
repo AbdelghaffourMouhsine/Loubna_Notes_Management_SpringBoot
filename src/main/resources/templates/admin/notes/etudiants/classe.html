@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étudiants de la Classe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Navigation -->
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/notes/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/notes/etudiants">
+                                <i class="fas fa-user-graduate"></i> Étudiants
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main class="col-md-10 ml-sm-auto px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        Étudiants de la classe 
+                        <span th:text="${niveau?.alias ?: 'Inconnue'}" class="text-primary"></span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="/admin/notes/etudiants" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour à la liste
+                            </a>
+                            <button type="button" class="btn btn-success" onclick="exportClasse()">
+                                <i class="fas fa-download"></i> Exporter la classe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations de la classe -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> 
+                            Informations de la classe
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Niveau:</strong>
+                                <p th:text="${niveau?.alias ?: 'N/A'}"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Libellé:</strong>
+                                <p th:text="${niveau?.libelle ?: 'N/A'}"></p>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Année Universitaire:</strong>
+                                <p th:text="${anneeUniversitaire}"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="d-flex align-items-center">
+                                    <strong class="me-3">Effectif total:</strong>
+                                    <span class="badge bg-primary fs-6" th:text="${etudiants.size()}">0</span>
+                                    <span class="ms-2 text-muted">étudiants inscrits</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Liste des étudiants -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users"></i> 
+                            Liste des étudiants
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="toggleSelectAll()">
+                                <i class="fas fa-check-double"></i> Tout sélectionner
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="printList()">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${etudiants.isEmpty()}" class="text-center text-muted py-5">
+                            <i class="fas fa-user-slash fa-3x mb-3"></i>
+                            <h5>Aucun étudiant inscrit</h5>
+                            <p>Il n'y a aucun étudiant inscrit dans cette classe pour l'année universitaire [[${anneeUniversitaire}]].</p>
+                        </div>
+
+                        <div th:if="${!etudiants.isEmpty()}" class="table-responsive">
+                            <table class="table table-striped table-hover" id="etudiantsTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">
+                                            <input type="checkbox" id="selectAll" class="form-check-input">
+                                        </th>
+                                        <th>N°</th>
+                                        <th>CNE</th>
+                                        <th>Nom</th>
+                                        <th>Prénom</th>
+                                        <th>Type Inscription</th>
+                                        <th>Date Inscription</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="etudiant, iterStat : ${etudiants}">
+                                        <td>
+                                            <input type="checkbox" class="form-check-input student-checkbox" 
+                                                   th:value="${etudiant.idEtudiant}">
+                                        </td>
+                                        <td th:text="${iterStat.count}" class="fw-bold"></td>
+                                        <td th:text="${etudiant.cne}" class="font-monospace"></td>
+                                        <td th:text="${etudiant.nom}"></td>
+                                        <td th:text="${etudiant.prenom}"></td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${etudiant.typeInscription == 'INSCRIPTION'} ? 'bg-success' : 'bg-warning'"
+                                                  th:text="${etudiant.typeInscription == 'INSCRIPTION'} ? 'Nouveau' : 'Réinscription'">
+                                            </span>
+                                        </td>
+                                        <td th:text="${etudiant.dateInscription != null ? #temporals.format(etudiant.dateInscription, 'dd/MM/yyyy') : 'N/A'}"></td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a th:href="@{/admin/notes/etudiants/{id}(id=${etudiant.idEtudiant})}" 
+                                                   class="btn btn-sm btn-outline-info" title="Voir le détail">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a th:href="@{/admin/notes/etudiants/{id}/edit(id=${etudiant.idEtudiant})}" 
+                                                   class="btn btn-sm btn-outline-warning" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a th:href="@{/admin/notes/etudiants/{id}/historique(id=${etudiant.idEtudiant})}" 
+                                                   class="btn btn-sm btn-outline-secondary" title="Historique">
+                                                    <i class="fas fa-history"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions groupées -->
+                <div th:if="${!etudiants.isEmpty()}" class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tasks"></i> 
+                            Actions groupées
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="exportSelected()">
+                                <i class="fas fa-download"></i> Exporter sélectionnés
+                            </button>
+                            <button class="btn btn-outline-info" onclick="printSelected()">
+                                <i class="fas fa-print"></i> Imprimer sélectionnés
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="showStatistics()">
+                                <i class="fas fa-chart-bar"></i> Voir statistiques
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <span id="selectedCount">0</span> étudiant(s) sélectionné(s)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                <div th:if="${!etudiants.isEmpty()}" class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-pie"></i> 
+                            Statistiques de la classe
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="border rounded p-3">
+                                    <h4 class="text-primary" th:text="${etudiants.size()}">0</h4>
+                                    <small class="text-muted">Total étudiants</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3">
+                                    <h4 class="text-success" th:text="${#aggregates.sum(etudiants.![typeInscription == 'INSCRIPTION' ? 1 : 0])}">0</h4>
+                                    <small class="text-muted">Nouveaux</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3">
+                                    <h4 class="text-warning" th:text="${#aggregates.sum(etudiants.![typeInscription == 'REINSCRIPTION' ? 1 : 0])}">0</h4>
+                                    <small class="text-muted">Réinscriptions</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3">
+                                    <h4 class="text-info" th:text="${etudiants.size() > 0 ? (#aggregates.sum(etudiants.![nombreNotes ?: 0]) / etudiants.size()) : 0}">0</h4>
+                                    <small class="text-muted">Moy. notes/étudiant</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Gestion de la sélection
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.student-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = selected;
+        }
+
+        // Event listeners pour les checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            
+            selectAll.addEventListener('change', toggleSelectAll);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedCount();
+                    
+                    // Mettre à jour le checkbox "Tout sélectionner"
+                    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                    const noneSelected = Array.from(checkboxes).every(cb => !cb.checked);
+                    
+                    selectAll.checked = allSelected;
+                    selectAll.indeterminate = !allSelected && !noneSelected;
+                });
+            });
+        });
+
+        // Export de la classe complète
+        function exportClasse() {
+            const niveauId = [[${niveau?.idNiveau ?: 0}]];
+            const annee = '[[${anneeUniversitaire}]]';
+            
+            window.location.href = `/admin/notes/etudiants/export?niveauId=${niveauId}&anneeUniversitaire=${annee}`;
+        }
+
+        // Export des étudiants sélectionnés
+        function exportSelected() {
+            const selected = Array.from(document.querySelectorAll('.student-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                alert('Veuillez sélectionner au moins un étudiant.');
+                return;
+            }
+            
+            // Créer un formulaire temporaire pour envoyer les IDs
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin/notes/etudiants/export-selection';
+            
+            selected.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'etudiantIds';
+                input.value = id;
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
+        // Impression
+        function printList() {
+            window.print();
+        }
+
+        function printSelected() {
+            const selected = document.querySelectorAll('.student-checkbox:checked');
+            if (selected.length === 0) {
+                alert('Veuillez sélectionner au moins un étudiant.');
+                return;
+            }
+            
+            // Logique d'impression sélective
+            printList();
+        }
+
+        function showStatistics() {
+            alert('Fonctionnalité statistiques détaillées à implémenter.');
+        }
+    </script>
+
+    <!-- CSS pour l'impression -->
+    <style media="print">
+        .sidebar, .btn-toolbar, .btn-group, .card-header .d-flex .gap-2 {
+            display: none !important;
+        }
+        
+        .container-fluid {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .col-md-10 {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+    </style>
+</body>
+</html>

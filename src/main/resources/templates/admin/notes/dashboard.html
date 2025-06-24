@@ -31,28 +31,180 @@
                             Bienvenue, <span sec:authentication="principal.personne.nomComplet"></span>
                         </h5>
                         <p class="mb-0">Vous êtes connecté en tant qu'<strong>Administrateur des Notes</strong>. 
-                           Cette section sera bientôt disponible pour gérer les notes des étudiants.</p>
+                           Vous pouvez maintenant gérer les étudiants et leurs informations.</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Coming Soon -->
-            <div class="row justify-content-center">
+            <!-- Accès rapides -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h3 class="mb-3"><i class="bi bi-lightning-charge"></i> Accès rapides</h3>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Gestion des Étudiants</h5>
+                            <p class="card-text">Créer, modifier, rechercher et consulter les étudiants</p>
+                            <a th:href="@{/admin/notes/etudiants}" class="btn btn-primary">
+                                <i class="bi bi-arrow-right"></i> Accéder
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-person-plus-fill text-success" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Nouvel Étudiant</h5>
+                            <p class="card-text">Ajouter un nouvel étudiant dans le système</p>
+                            <a th:href="@{/admin/notes/etudiants/new}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Créer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-earmark-arrow-up text-warning" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Import d'Étudiants</h5>
+                            <p class="card-text">Importer des étudiants depuis un fichier Excel</p>
+                            <a th:href="@{/admin/notes/import}" class="btn btn-warning">
+                                <i class="bi bi-upload"></i> Importer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-search text-info" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Recherche Avancée</h5>
+                            <p class="card-text">Rechercher des étudiants avec plusieurs critères</p>
+                            <a th:href="@{/admin/notes/etudiants/search}" class="btn btn-info">
+                                <i class="bi bi-search"></i> Rechercher
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h3 class="mb-3"><i class="bi bi-bar-chart"></i> Statistiques</h3>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="totalEtudiants">-</h4>
+                                    <p class="mb-0">Total Étudiants</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-people" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="nouveauxEtudiants">-</h4>
+                                    <p class="mb-0">Nouveaux cette année</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-person-plus" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="niveauxActifs">-</h4>
+                                    <p class="mb-0">Niveaux actifs</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-layers" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="modificationsRecentes">-</h4>
+                                    <p class="mb-0">Modifications récentes</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-pencil-square" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fonctionnalités disponibles -->
+            <div class="row mb-4">
                 <div class="col-md-8">
-                    <div class="card shadow text-center">
-                        <div class="card-body py-5">
-                            <i class="bi bi-tools text-muted" style="font-size: 5rem;"></i>
-                            <h3 class="mt-3">Fonctionnalités en développement</h3>
-                            <p class="text-muted">
-                                Les fonctionnalités de gestion des notes seront bientôt disponibles. 
-                                Cette section permettra de :
-                            </p>
-                            <ul class="list-unstyled text-start mt-4">
-                                <li><i class="bi bi-check-circle text-success"></i> Gérer les inscriptions et réinscriptions des étudiants</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Générer les fichiers de collecte des notes</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Importer et traiter les notes</li>
-                                <li><i class="bi bi-check-circle text-success"></i> Gérer les délibérations</li>
-                            </ul>
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-check2-square"></i> Fonctionnalités disponibles
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-success">✓ Gestion des étudiants</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        <li><i class="bi bi-check text-success"></i> Créer/modifier/supprimer étudiant</li>
+                                        <li><i class="bi bi-check text-success"></i> Recherche multi-critères</li>
+                                        <li><i class="bi bi-check text-success"></i> Consultation par classe</li>
+                                        <li><i class="bi bi-check text-success"></i> Historique des modifications</li>
+                                        <li><i class="bi bi-check text-success"></i> Export CSV</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">⏳ À venir</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        <li><i class="bi bi-clock text-muted"></i> Import depuis Excel</li>
+                                        <li><i class="bi bi-clock text-muted"></i> Génération fichiers notes</li>
+                                        <li><i class="bi bi-clock text-muted"></i> Collecte des notes</li>
+                                        <li><i class="bi bi-clock text-muted"></i> Gestion des délibérations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history"></i> Actions récentes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="actionsRecentes">
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-hourglass-split"></i> Chargement...
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -62,5 +214,59 @@
     
     <!-- Scripts -->
     <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        // Chargement des statistiques au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadRecentActions();
+        });
+
+        function loadStatistics() {
+            // Simulation du chargement des statistiques
+            // À remplacer par des appels AJAX réels vers des endpoints dédiés
+            setTimeout(function() {
+                document.getElementById('totalEtudiants').textContent = '2,847';
+                document.getElementById('nouveauxEtudiants').textContent = '324';
+                document.getElementById('niveauxActifs').textContent = '25';
+                document.getElementById('modificationsRecentes').textContent = '12';
+            }, 1000);
+        }
+
+        function loadRecentActions() {
+            // Simulation du chargement des actions récentes
+            setTimeout(function() {
+                const actionsHtml = `
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Création étudiant</h6>
+                                <small>2h</small>
+                            </div>
+                            <p class="mb-1 small">ALAMI Ahmed (R123456789)</p>
+                            <small class="text-muted">Niveau: GI1</small>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Modification</h6>
+                                <small>4h</small>
+                            </div>
+                            <p class="mb-1 small">Changement nom étudiant</p>
+                            <small class="text-muted">BENALI → BEN ALI</small>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Export CSV</h6>
+                                <small>6h</small>
+                            </div>
+                            <p class="mb-1 small">Classe GC2 exportée</p>
+                            <small class="text-muted">45 étudiants</small>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('actionsRecentes').innerHTML = actionsHtml;
+            }, 1500);
+        }
+    </script>
 </body>
 </html>

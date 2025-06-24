@@ -15,6 +15,9 @@ public interface HistoriqueModificationEtudiantRepository extends JpaRepository<
     @Query("SELECT h FROM HistoriqueModificationEtudiant h WHERE h.etudiant.id = :etudiantId ORDER BY h.dateModification DESC")
     List<HistoriqueModificationEtudiant> findByEtudiantIdOrderByDateDesc(@Param("etudiantId") Long etudiantId);
     
+    @Query("SELECT h FROM HistoriqueModificationEtudiant h WHERE h.etudiant.idEtudiant = :etudiantId ORDER BY h.dateModification DESC")
+    List<HistoriqueModificationEtudiant> findByEtudiantIdEtudiantOrderByDateModificationDesc(@Param("etudiantId") Long etudiantId);
+    
     @Query("SELECT h FROM HistoriqueModificationEtudiant h WHERE h.utilisateurModification.id = :utilisateurId ORDER BY h.dateModification DESC")
     List<HistoriqueModificationEtudiant> findByUtilisateurIdOrderByDateDesc(@Param("utilisateurId") Long utilisateurId);
     
