@@ -50,11 +50,10 @@
                     </button>
                 </div>
                 <small class="form-text text-muted">Veuillez noter ce mot de passe et le communiquer à l'utilisateur de manière sécurisée.</small>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             
             <!-- New Account Info -->
-            <div th:if="${newCompte}" class="alert alert-success" role="alert">
+            <div th:if="${newCompte}" class="alert alert-success alert-dismissible fade show" role="alert">
                 <h5><i class="bi bi-check-circle"></i> Compte créé avec succès !</h5>
                 <div class="row">
                     <div class="col-md-6">
@@ -71,6 +70,7 @@
                         </button>
                     </div>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             
             <!-- Account Details -->
