@@ -120,13 +120,17 @@ public class AdminUserController {
     }
     
     @GetMapping("/comptes/{id}")
-    public String showCompteDetails(@PathVariable Long id, Model model) {
+    public String showCompteDetails(@PathVariable Long id, Model model, @ModelAttribute("newCompte") CompteUtilisateurDTO newCompte) {
         CompteUtilisateur compte = compteUtilisateurService.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé"));
         
         CompteUtilisateurDTO compteDTO = compteUtilisateurService.convertToDTO(compte);
         model.addAttribute("compte", compteDTO);
         model.addAttribute("roles", Role.values());
+        // Ajout : si newCompte existe, on le remet dans le modèle
+        if (newCompte != null && newCompte.getIdCompte() != null) {
+            model.addAttribute("newCompte", newCompte);
+        }
         
         return "admin/users/compte-details";
     }

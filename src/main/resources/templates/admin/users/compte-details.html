@@ -62,9 +62,11 @@
                     </div>
                     <div class="col-md-6">
                         <strong>Mot de passe :</strong> 
-                        <span th:text="${newCompte.motDePasseGenere}"></span>
-                        <button class="btn btn-sm btn-outline-secondary ms-2" 
-                                th:onclick="'copyToClipboard(\'' + ${newCompte.motDePasseGenere} + '\')'">
+                        <span th:if="${newCompte.motDePasseGenere != null}" th:text="${newCompte.motDePasseGenere}"></span>
+                        <button th:if="${newCompte.motDePasseGenere != null}"
+                                class="btn btn-sm btn-outline-secondary ms-2"
+                                th:attr="data-password=${newCompte.motDePasseGenere}"
+                                onclick="copyToClipboard(this.getAttribute('data-password'))">
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
