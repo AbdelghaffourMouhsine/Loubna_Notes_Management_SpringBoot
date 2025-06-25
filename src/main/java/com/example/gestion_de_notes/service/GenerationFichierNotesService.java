@@ -233,31 +233,32 @@ public class GenerationFichierNotesService {
                                 CellStyle headerStyle, int startRow) {
         int rowNum = startRow;
         
-        // Titre du module
-        Row titleRow = sheet.createRow(rowNum++);
-        Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("Module " + module.getCode());
-        titleCell.setCellStyle(headerStyle);
+        // Première ligne : Module | m1 | Semestre | Automne | Année | 2024/2025
+        Row firstRow = sheet.createRow(rowNum++);
+        firstRow.createCell(0).setCellValue("Module");
+        firstRow.createCell(1).setCellValue(module.getCode());
+        firstRow.createCell(2).setCellValue("Semestre");
+        firstRow.createCell(3).setCellValue(request.getSemestre());
+        firstRow.createCell(4).setCellValue("Année");
+        firstRow.createCell(5).setCellValue(request.getAnneeUniversitaire());
         
-        // Semestre et année
-        Row semestreRow = sheet.createRow(rowNum++);
-        semestreRow.createCell(0).setCellValue("Semestre");
-        semestreRow.createCell(1).setCellValue(request.getSemestre());
-        semestreRow.createCell(2).setCellValue("Année");
-        semestreRow.createCell(3).setCellValue(request.getAnneeUniversitaire());
-        
-        // Enseignant
+        // Deuxième ligne : Enseignant | mouhsine abdelghaffour | Session | NORMALE | Classe | CP1
         String enseignantNom = getEnseignantModule(module, request.getAnneeUniversitaire());
-        Row enseignantRow = sheet.createRow(rowNum++);
-        enseignantRow.createCell(0).setCellValue("Enseignant");
-        enseignantRow.createCell(1).setCellValue(enseignantNom);
+        Row secondRow = sheet.createRow(rowNum++);
+        secondRow.createCell(0).setCellValue("Enseignant");
+        secondRow.createCell(1).setCellValue(enseignantNom);
+        secondRow.createCell(2).setCellValue("Session");
+        secondRow.createCell(3).setCellValue(request.getSession());
+        secondRow.createCell(4).setCellValue("Classe");
+        secondRow.createCell(5).setCellValue(module.getNiveau().getAlias());
         
-        // Session et classe
-        Row sessionRow = sheet.createRow(rowNum++);
-        sessionRow.createCell(0).setCellValue("Session");
-        sessionRow.createCell(1).setCellValue(request.getSession());
-        sessionRow.createCell(2).setCellValue("Classe");
-        sessionRow.createCell(3).setCellValue(module.getNiveau().getAlias());
+        // Application du style aux cellules des étiquettes (colonnes 0, 2, 4)
+        firstRow.getCell(0).setCellStyle(headerStyle);
+        firstRow.getCell(2).setCellStyle(headerStyle);
+        firstRow.getCell(4).setCellStyle(headerStyle);
+        secondRow.getCell(0).setCellStyle(headerStyle);
+        secondRow.getCell(2).setCellStyle(headerStyle);
+        secondRow.getCell(4).setCellStyle(headerStyle);
         
         // Ligne vide
         sheet.createRow(rowNum++);
@@ -295,7 +296,7 @@ public class GenerationFichierNotesService {
         // Colonnes pour les éléments
         for (Element element : elements) {
             Cell cell = headerRow.createCell(colNum++);
-            cell.setCellValue("Elément " + (elements.indexOf(element) + 1));
+            cell.setCellValue(element.getTitre());
             cell.setCellStyle(headerStyle);
         }
         
@@ -777,7 +778,7 @@ public class GenerationFichierNotesService {
             
             // Colonnes pour les éléments du module
             for (Element element : elements) {
-                headerRow2.createCell(colNum++).setCellValue("Élément " + (elements.indexOf(element) + 1));
+                headerRow2.createCell(colNum++).setCellValue(element.getTitre());
             }
             
             // Colonnes Moyenne et Validation du module
