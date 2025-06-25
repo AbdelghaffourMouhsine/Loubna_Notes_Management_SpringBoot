@@ -242,11 +242,11 @@ public class EtudiantController {
     
     @GetMapping("/{id}")
     public String viewEtudiant(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
-        Optional<EtudiantDTO> etudiant = etudiantService.findById(id);
-        if (etudiant.isPresent()) {
+        Optional<EtudiantCompletDTO> etudiantComplet = etudiantService.getEtudiantComplet(id);
+        if (etudiantComplet.isPresent()) {
             List<HistoriqueModificationEtudiant> historique = etudiantService.getHistoriqueModifications(id);
             
-            model.addAttribute("etudiant", etudiant.get());
+            model.addAttribute("etudiantComplet", etudiantComplet.get());
             model.addAttribute("historique", historique);
             return "admin/notes/etudiants/view";
         } else {

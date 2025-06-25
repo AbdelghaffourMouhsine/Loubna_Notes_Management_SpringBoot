@@ -65,6 +65,7 @@
                                             <th>ID</th>
                                             <th>Alias</th>
                                             <th>Libellé</th>
+                                            <th>Filières</th>
                                             <th>Niveau Suivant</th>
                                             <th>Actions</th>
                                         </tr>
@@ -78,6 +79,16 @@
                                                 <span class="badge bg-info" th:text="${niveau.alias}"></span>
                                             </td>
                                             <td th:text="${niveau.libelle}"></td>
+                                            <td>
+                                                <div th:if="${niveau.filieres != null and not #lists.isEmpty(niveau.filieres)}">
+                                                    <span th:each="filiere, iterStat : ${niveau.filieres}" 
+                                                          class="badge bg-primary me-1 mb-1"
+                                                          th:text="${filiere.alias}"
+                                                          th:title="${filiere.intitule}"></span>
+                                                </div>
+                                                <span th:unless="${niveau.filieres != null and not #lists.isEmpty(niveau.filieres)}" 
+                                                      class="text-muted">Aucune filière</span>
+                                            </td>
                                             <td>
                                                 <span th:if="${niveau.niveauSuivantAlias != null}" 
                                                       th:text="${niveau.niveauSuivantAlias}"

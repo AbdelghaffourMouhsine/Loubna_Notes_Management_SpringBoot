@@ -114,6 +114,31 @@
                                     <div class="form-text">Le niveau vers lequel les étudiants passent ensuite</div>
                                 </div>
                                 
+                                <div class="mb-3">
+                                    <label for="idsFilieres" class="form-label">
+                                        Filières <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" 
+                                            id="idsFilieres" 
+                                            th:field="*{idsFilieres}"
+                                            th:classappend="${#fields.hasErrors('idsFilieres')} ? 'is-invalid' : ''"
+                                            multiple
+                                            size="6">
+                                        <option th:each="fil : ${filieres}" 
+                                                th:value="${fil.idFiliere}" 
+                                                th:text="${fil.alias + ' - ' + fil.intitule}"
+                                                th:selected="${niveau.idsFilieres != null and #lists.contains(niveau.idsFilieres, fil.idFiliere)}"></option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('idsFilieres')}" 
+                                         class="invalid-feedback" 
+                                         th:errors="*{idsFilieres}"></div>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Maintenir Ctrl (Windows/Linux) ou Cmd (Mac) pour sélectionner plusieurs filières.
+                                        Au moins une filière doit être sélectionnée.
+                                    </div>
+                                </div>
+                                
                                 <div class="d-flex justify-content-between">
                                     <a th:href="@{/admin/structures/niveaux}" class="btn btn-secondary">
                                         <i class="bi bi-x-circle"></i> Annuler
@@ -133,5 +158,37 @@
     
     <!-- Scripts -->
     <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <!-- Script spécifique pour la sélection multiple des filières -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectFilieres = document.getElementById('idsFilieres');
+            
+            if (selectFilieres) {
+                // Ajouter un indicateur visuel pour la sélection multiple
+                const helpText = selectFilieres.nextElementSibling?.nextElementSibling;
+                if (helpText && helpText.classList.contains('form-text')) {
+                    const countSpan = document.createElement('span');
+                    countSpan.id = 'filiere-count';
+                    countSpan.className = 'badge bg-secondary ms-2';
+                    countSpan.textContent = '0 sélectionnée(s)';
+                    helpText.appendChild(countSpan);
+                }
+                
+                // Mettre à jour le compteur lors de la sélection
+                selectFilieres.addEventListener('change', function() {
+                    const selectedCount = this.selectedOptions.length;
+                    const countSpan = document.getElementById('filiere-count');
+                    if (countSpan) {
+                        countSpan.textContent = selectedCount + ' sélectionnée(s)';
+                        countSpan.className = 'badge ms-2 ' + (selectedCount > 0 ? 'bg-success' : 'bg-secondary');
+                    }
+                });
+                
+                // Initialiser le compteur
+                selectFilieres.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
 </body>
 </html>

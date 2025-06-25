@@ -1,12 +1,16 @@
 package com.example.gestion_de_notes.service;
 
+import com.example.gestion_de_notes.dto.FiliereDTO;
 import com.example.gestion_de_notes.dto.NiveauDTO;
+import com.example.gestion_de_notes.entity.Filiere;
 import com.example.gestion_de_notes.entity.Niveau;
+import com.example.gestion_de_notes.repository.FiliereRepository;
 import com.example.gestion_de_notes.repository.NiveauRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +21,9 @@ public class NiveauService {
     
     @Autowired
     private NiveauRepository niveauRepository;
+    
+    @Autowired
+    private FiliereRepository filiereRepository;
     
     public List<NiveauDTO> findAll() {
         return niveauRepository.findAll().stream()
@@ -36,6 +43,19 @@ public class NiveauService {
     
     public NiveauDTO save(NiveauDTO niveauDTO) {
         Niveau niveau = convertToEntity(niveauDTO);
+        
+        // Gestion des filières associées
+        if (niveauDTO.getIdsFilieres() != null && !niveauDTO.getIdsFilieres().isEmpty()) {
+            List<Filiere> filieres = new ArrayList<>();
+            for (Long idFiliere : niveauDTO.getIdsFilieres()) {
+                Optional<Filiere> filiere = filiereRepository.findById(idFiliere);
+                filiere.ifPresent(filieres::add);
+            }
+            niveau.setFilieres(filieres);
+        } else {
+            niveau.setFilieres(new ArrayList<>());
+        }
+        
         Niveau savedNiveau = niveauRepository.save(niveau);
         return convertToDTO(savedNiveau);
     }
@@ -71,6 +91,23 @@ public class NiveauService {
             dto.setIdNiveauSuivant(niveau.getNiveauSuivant().getIdNiveau());
             dto.setNiveauSuivantAlias(niveau.getNiveauSuivant().getAlias());
         }
+        
+        // Gestion des filières associées
+        if (niveau.getFilieres() != null && !niveau.getFilieres().isEmpty()) {
+            List<Long> idsFilieres = niveau.getFilieres().stream()
+                    .map(Filiere::getIdFiliere)
+                    .collect(Collectors.toList());
+            dto.setIdsFilieres(idsFilieres);
+            
+            List<FiliereDTO> filieresDTO = niveau.getFilieres().stream()
+                    .map(this::convertFiliereToDTO)
+                    .collect(Collectors.toList());
+            dto.setFilieres(filieresDTO);
+        } else {
+            dto.setIdsFilieres(new ArrayList<>());
+            dto.setFilieres(new ArrayList<>());
+        }
+        
         return dto;
     }
     
@@ -86,5 +123,19 @@ public class NiveauService {
         }
         
         return niveau;
+    }
+    
+    private FiliereDTO convertFiliereToDTO(Filiere filiere) {
+        FiliereDTO dto = new FiliereDTO();
+        dto.setIdFiliere(filiere.getIdFiliere());
+        dto.setAlias(filiere.getAlias());
+        dto.setIntitule(filiere.getIntitule());
+        dto.setAnneeAccreditation(filiere.getAnneeAccreditation());
+        dto.setAnneeFinAccreditation(filiere.getAnneeFinAccreditation());
+        if (filiere.getCoordonnateur() != null) {
+            dto.setIdCoordonnateur(filiere.getCoordonnateur().getIdPersonne());
+            dto.setNomCoordonnateur(filiere.getCoordonnateur().getNom() + " " + filiere.getCoordonnateur().getPrenom());
+        }
+        return dto;
     }
 }

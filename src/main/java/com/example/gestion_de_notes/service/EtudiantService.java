@@ -3,6 +3,8 @@ package com.example.gestion_de_notes.service;
 import com.example.gestion_de_notes.dto.EtudiantDTO;
 import com.example.gestion_de_notes.dto.EtudiantSearchDTO;
 import com.example.gestion_de_notes.dto.EtudiantDetailDTO;
+import com.example.gestion_de_notes.dto.EtudiantCompletDTO;
+import com.example.gestion_de_notes.dto.*;
 import com.example.gestion_de_notes.entity.*;
 import com.example.gestion_de_notes.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Service
 @Transactional
@@ -159,6 +162,68 @@ public class EtudiantService {
     }
     
     /**
+     * Obtenir les détails complets d'un étudiant avec niveau, modules, filière et notes
+     */
+    public Optional<EtudiantCompletDTO> getEtudiantComplet(Long etudiantId) {
+        Optional<Etudiant> etudiantOpt = etudiantRepository.findById(etudiantId);
+        if (!etudiantOpt.isPresent()) {
+            return Optional.empty();
+        }
+        
+        Etudiant etudiant = etudiantOpt.get();
+        EtudiantCompletDTO dto = new EtudiantCompletDTO();
+        
+        // Informations de base
+        dto.setIdEtudiant(etudiant.getIdEtudiant());
+        dto.setCne(etudiant.getCne());
+        dto.setNom(etudiant.getNom());
+        dto.setPrenom(etudiant.getPrenom());
+        dto.setNomComplet(etudiant.getNomComplet());
+        
+        // Inscription actuelle (la plus récente)
+        if (!etudiant.getInscriptions().isEmpty()) {
+            Inscription inscriptionActuelle = etudiant.getInscriptions().stream()
+                .max((i1, i2) -> i1.getDateInscription().compareTo(i2.getDateInscription()))
+                .orElse(null);
+            
+            if (inscriptionActuelle != null) {
+                dto.setInscriptionActuelle(convertInscriptionToDTO(inscriptionActuelle));
+                
+                // Niveau actuel
+                Niveau niveau = inscriptionActuelle.getNiveau();
+                dto.setNiveauActuel(convertNiveauToDTO(niveau));
+                
+                // Filière actuelle (prendre la première filière du niveau)
+                if (!niveau.getFilieres().isEmpty()) {
+                    dto.setFiliereActuelle(convertFiliereToDTO(niveau.getFilieres().get(0)));
+                }
+                
+                // Modules du niveau
+                if (!niveau.getModules().isEmpty()) {
+                    dto.setModulesNiveau(niveau.getModules().stream()
+                        .map(this::convertModuleToDTO)
+                        .collect(Collectors.toList()));
+                }
+                
+                // Notes de l'étudiant pour l'année en cours
+                List<EtudiantNotesDTO> notes = getNotesEtudiantAnneeEnCours(etudiant, inscriptionActuelle.getAnneeUniversitaire());
+                dto.setNotesAnneeEnCours(notes);
+                
+                // Calcul des statistiques
+                calculerStatistiques(dto, notes);
+            }
+        }
+        
+        // Historique des inscriptions
+        dto.setHistoriqueInscriptions(etudiant.getInscriptions().stream()
+            .map(this::convertInscriptionToDTO)
+            .sorted((i1, i2) -> i2.getDateInscription().compareTo(i1.getDateInscription()))
+            .collect(Collectors.toList()));
+        
+        return Optional.of(dto);
+    }
+    
+    /**
      * Obtenir l'historique des modifications d'un étudiant
      */
     public List<HistoriqueModificationEtudiant> getHistoriqueModifications(Long etudiantId) {
@@ -296,5 +361,98 @@ public class EtudiantService {
         etudiant.setNom(dto.getNom());
         etudiant.setPrenom(dto.getPrenom());
         return etudiant;
+    }
+    
+    // === MÉTHODES AUXILIAIRES POUR LES DÉTAILS COMPLETS ===
+    
+    private InscriptionDTO convertInscriptionToDTO(Inscription inscription) {
+        InscriptionDTO dto = new InscriptionDTO();
+        dto.setIdInscription(inscription.getIdInscription());
+        dto.setIdEtudiant(inscription.getEtudiant().getIdEtudiant());
+        dto.setIdNiveau(inscription.getNiveau().getIdNiveau());
+        dto.setAliasNiveau(inscription.getNiveau().getAlias());
+        dto.setAnneeUniversitaire(inscription.getAnneeUniversitaire());
+        dto.setTypeInscription(inscription.getTypeInscription());
+        dto.setDateInscription(inscription.getDateInscription());
+        return dto;
+    }
+    
+    private NiveauDTO convertNiveauToDTO(Niveau niveau) {
+        NiveauDTO dto = new NiveauDTO();
+        dto.setIdNiveau(niveau.getIdNiveau());
+        dto.setLibelle(niveau.getLibelle());
+        dto.setAlias(niveau.getAlias());
+        if (niveau.getNiveauSuivant() != null) {
+            dto.setIdNiveauSuivant(niveau.getNiveauSuivant().getIdNiveau());
+            dto.setNiveauSuivantAlias(niveau.getNiveauSuivant().getAlias());
+        }
+        return dto;
+    }
+    
+    private FiliereDTO convertFiliereToDTO(Filiere filiere) {
+        FiliereDTO dto = new FiliereDTO();
+        dto.setIdFiliere(filiere.getIdFiliere());
+        dto.setAlias(filiere.getAlias());
+        dto.setIntitule(filiere.getIntitule());
+        dto.setAnneeAccreditation(filiere.getAnneeAccreditation());
+        dto.setAnneeFinAccreditation(filiere.getAnneeFinAccreditation());
+        if (filiere.getCoordonnateur() != null) {
+            dto.setIdCoordonnateur(filiere.getCoordonnateur().getIdPersonne());
+            dto.setNomCoordonnateur(filiere.getCoordonnateur().getNom() + " " + filiere.getCoordonnateur().getPrenom());
+        }
+        return dto;
+    }
+    
+    private ModuleDTO convertModuleToDTO(com.example.gestion_de_notes.entity.Module module) {
+        ModuleDTO dto = new ModuleDTO();
+        dto.setIdModule(module.getIdModule());
+        dto.setTitre(module.getTitre());
+        dto.setCode(module.getCode());
+        dto.setIdNiveau(module.getNiveau().getIdNiveau());
+        dto.setNiveauAlias(module.getNiveau().getAlias());
+        return dto;
+    }
+    
+    private List<EtudiantNotesDTO> getNotesEtudiantAnneeEnCours(Etudiant etudiant, String anneeUniversitaire) {
+        // Cette méthode devrait récupérer les notes de l'étudiant pour l'année en cours
+        // Pour l'instant, on retourne une liste vide
+        // À implémenter selon la structure des notes dans votre base de données
+        return java.util.Collections.emptyList();
+    }
+    
+    private void calculerStatistiques(EtudiantCompletDTO dto, List<EtudiantNotesDTO> notes) {
+        if (notes == null || notes.isEmpty()) {
+            dto.setNombreModulesValides(0);
+            dto.setNombreModulesNonValides(0);
+            dto.setMoyenneGenerale(0.0);
+            dto.setStatut("EN_COURS");
+            return;
+        }
+        
+        // Calcul des statistiques basé sur les notes
+        long modulesValides = notes.stream()
+            .filter(note -> note.getMoyenne() != null && note.getMoyenne().compareTo(BigDecimal.valueOf(12.0)) >= 0)
+            .count();
+        
+        dto.setNombreModulesValides((int) modulesValides);
+        dto.setNombreModulesNonValides(notes.size() - (int) modulesValides);
+        
+        // Calcul de la moyenne générale
+        double moyenneGenerale = notes.stream()
+            .filter(note -> note.getMoyenne() != null)
+            .mapToDouble(note -> note.getMoyenne().doubleValue())
+            .average()
+            .orElse(0.0);
+        
+        dto.setMoyenneGenerale(moyenneGenerale);
+        
+        // Détermination du statut
+        if (moyenneGenerale >= 12.0) {
+            dto.setStatut("ADMIS");
+        } else if (moyenneGenerale >= 8.0) {
+            dto.setStatut("AJOURNÉ");
+        } else {
+            dto.setStatut("EN_COURS");
+        }
     }
 }

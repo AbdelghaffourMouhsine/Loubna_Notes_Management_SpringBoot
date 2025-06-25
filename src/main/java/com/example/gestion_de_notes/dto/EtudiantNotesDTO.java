@@ -28,6 +28,9 @@ public class EtudiantNotesDTO {
     private String validation;
     
     // Informations supplémentaires
+    private String moduleCode;
+    private String moduleTitle;
+    private String elementsDetails;
     private String niveauAlias;
     private String anneeUniversitaire;
     private Boolean needsRattrapage;

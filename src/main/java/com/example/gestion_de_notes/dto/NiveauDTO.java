@@ -1,10 +1,13 @@
 package com.example.gestion_de_notes.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -24,4 +27,10 @@ public class NiveauDTO {
     private Long idNiveauSuivant;
     
     private String niveauSuivantAlias;
+    
+    // Nouvelles propriétés pour la gestion des filières
+    @NotEmpty(message = "Au moins une filière doit être sélectionnée")
+    private List<Long> idsFilieres;
+    
+    private List<FiliereDTO> filieres;
 }
