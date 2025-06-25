@@ -3,6 +3,7 @@ package com.example.gestion_de_notes.service;
 import com.example.gestion_de_notes.entity.CompteUtilisateur;
 import com.example.gestion_de_notes.entity.JournalApplication;
 import com.example.gestion_de_notes.repository.JournalApplicationRepository;
+import com.example.gestion_de_notes.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,17 @@ public class JournalApplicationService {
     
     @Autowired(required = false)
     private HttpServletRequest request;
+    
+    /**
+     * Enregistre une action avec l'utilisateur connecté
+     */
+    public void enregistrerAction(String action, String details) {
+        CompteUtilisateur utilisateurConnecte = SecurityUtils.getCurrentUser();
+        if (utilisateurConnecte != null) {
+            enregistrerAction(utilisateurConnecte, action, details);
+        }
+        // Si aucun utilisateur connecté, on ignore l'enregistrement
+    }
     
     public void enregistrerAction(CompteUtilisateur utilisateur, String action, String details) {
         JournalApplication journal = new JournalApplication();

@@ -87,7 +87,6 @@ public class GenerationFichierNotesService {
         
         // Journalisation
         journalApplicationService.enregistrerAction(
-            null, // Utilisateur à déterminer selon le contexte
             "Génération fichier notes module",
             String.format("Fichier généré pour %s - Session: %s - %d étudiants",
                 module.getCode(), request.getSession(), etudiants.size())
@@ -117,7 +116,6 @@ public class GenerationFichierNotesService {
         
         // Journalisation
         journalApplicationService.enregistrerAction(
-            null, // Utilisateur à déterminer selon le contexte
             "Génération fichier délibération",
             String.format("Fichier délibération généré pour %s - %d étudiants, %d modules",
                 niveau.getAlias(), etudiants.size(), modules.size())

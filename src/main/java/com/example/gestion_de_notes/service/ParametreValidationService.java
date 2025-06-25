@@ -121,7 +121,6 @@ public class ParametreValidationService {
         // Journalisation
         String action = isNew ? "Création" : "Modification";
         journalApplicationService.enregistrerAction(
-            null, // Utilisateur à déterminer selon le contexte
             action + " paramètre validation",
             String.format("%s paramètre validation pour %s/%s - Seuils: %.2f/%.2f",
                 action, filiere.getAlias(), niveau.getAlias(), 
@@ -142,7 +141,6 @@ public class ParametreValidationService {
         
         // Journalisation
         journalApplicationService.enregistrerAction(
-            null, // Utilisateur à déterminer selon le contexte
             "Suppression paramètre validation",
             String.format("Suppression paramètre validation pour %s/%s",
                 entity.getFiliere().getAlias(), entity.getNiveau().getAlias())
