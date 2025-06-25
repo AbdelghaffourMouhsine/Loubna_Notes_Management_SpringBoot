@@ -1,7 +1,9 @@
 package com.example.gestion_de_notes.controller;
 
 import com.example.gestion_de_notes.dto.GenerationFichierRequestDTO;
+import com.example.gestion_de_notes.dto.ImportNotesResultDTO;
 import com.example.gestion_de_notes.service.GenerationFichierNotesService;
+import com.example.gestion_de_notes.service.ImportNotesService;
 import com.example.gestion_de_notes.service.ModuleService;
 import com.example.gestion_de_notes.service.NiveauService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +15,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/notes")
@@ -25,6 +29,9 @@ public class AdminNotesController {
     
     @Autowired
     private GenerationFichierNotesService generationFichierNotesService;
+    
+    @Autowired
+    private ImportNotesService importNotesService;
     
     @Autowired
     private ModuleService moduleService;
@@ -116,6 +123,64 @@ public class AdminNotesController {
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    // ===============================
+    // IMPORT DES NOTES
+    // ===============================
+    
+    @GetMapping("/import-notes")
+    public String pageImport(Model model) {
+        model.addAttribute("message", "");
+        return "admin/notes/import/index";
+    }
+    
+    @PostMapping("/import-notes/notes")
+    public String importerNotes(@RequestParam("fichier") MultipartFile fichier,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            ImportNotesResultDTO resultat = importNotesService.importerNotesModule(fichier);
+            
+            if (resultat.isSucces()) {
+                redirectAttributes.addFlashAttribute("messageSucces", resultat.getMessage());
+                return "redirect:/admin/notes/import-notes";
+            } else if (resultat.isNecessiteConfirmation()) {
+                model.addAttribute("messageConfirmation", resultat.getMessage());
+                model.addAttribute("metadonnees", resultat.getMetadonnees());
+                model.addAttribute("fichierNom", fichier.getOriginalFilename());
+                return "admin/notes/import/confirmation";
+            } else {
+                model.addAttribute("messageErreur", resultat.getMessage());
+                return "admin/notes/import/index";
+            }
+            
+        } catch (Exception e) {
+            model.addAttribute("messageErreur", "Erreur lors de l'import : " + e.getMessage());
+            return "admin/notes/import/index";
+        }
+    }
+    
+    @PostMapping("/import-notes/notes/confirmer")
+    public String confirmerImportNotes(@RequestParam("fichier") MultipartFile fichier,
+                                      @RequestParam Map<String, String> metadonnees,
+                                      Model model,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            ImportNotesResultDTO resultat = importNotesService.importerNotesAvecConfirmation(fichier, metadonnees);
+            
+            if (resultat.isSucces()) {
+                redirectAttributes.addFlashAttribute("messageSucces", resultat.getMessage());
+            } else {
+                redirectAttributes.addFlashAttribute("messageErreur", resultat.getMessage());
+            }
+            
+            return "redirect:/admin/notes/import-notes";
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("messageErreur", "Erreur lors de la confirmation : " + e.getMessage());
+            return "redirect:/admin/notes/import-notes";
         }
     }
 }

@@ -92,6 +92,18 @@
                 <div class="col-md-3 mb-3">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body text-center">
+                            <i class="bi bi-file-earmark-arrow-up text-secondary" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Import Notes</h5>
+                            <p class="card-text">Importer les notes saisies depuis un fichier Excel</p>
+                            <a th:href="@{/admin/notes/import-notes}" class="btn btn-secondary">
+                                <i class="bi bi-upload"></i> Importer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
                             <i class="bi bi-search text-info" style="font-size: 3rem;"></i>
                             <h5 class="card-title mt-3">Recherche Avancée</h5>
                             <p class="card-text">Rechercher des étudiants avec plusieurs critères</p>
@@ -199,15 +211,23 @@
                                         <li><i class="bi bi-check text-success"></i> Formules automatiques intégrées</li>
                                         <li><i class="bi bi-check text-success"></i> Sessions normale et rattrapage</li>
                                     </ul>
+                                    
+                                    <h6 class="text-success mt-3">✓ Collecte des notes</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        <li><i class="bi bi-check text-success"></i> Import fichiers Excel de notes</li>
+                                        <li><i class="bi bi-check text-success"></i> Validation automatique des données</li>
+                                        <li><i class="bi bi-check text-success"></i> Gestion des conflits</li>
+                                        <li><i class="bi bi-check text-success"></i> Vérification de cohérence</li>
+                                    </ul>
                                 </div>
                                 <div class="col-md-6">
                                     <h6 class="text-muted">⏳ À venir</h6>
                                     <ul class="list-unstyled ms-3">
                                         <li><i class="bi bi-clock text-muted"></i> Fichiers de délibération finale</li>
                                         <li><i class="bi bi-clock text-muted"></i> Archives complètes par niveau</li>
-                                        <li><i class="bi bi-clock text-muted"></i> Collecte des notes</li>
                                         <li><i class="bi bi-clock text-muted"></i> Gestion des délibérations</li>
-                                        <li><i class="bi bi-clock text-muted"></i> Calculs automatiques</li>
+                                        <li><i class="bi bi-clock text-muted"></i> Calculs automatiques moyennes</li>
+                                        <li><i class="bi bi-clock text-muted"></i> Statistiques et reporting</li>
                                     </ul>
                                 </div>
                             </div>
