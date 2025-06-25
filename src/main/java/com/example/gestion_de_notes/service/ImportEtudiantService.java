@@ -24,6 +24,12 @@ public class ImportEtudiantService {
     private InscriptionRepository inscriptionRepository;
     
     @Autowired
+    private InscriptionModuleRepository inscriptionModuleRepository;
+    
+    @Autowired
+    private ModuleRepository moduleRepository;
+    
+    @Autowired
     private NiveauRepository niveauRepository;
     
     @Autowired
@@ -53,6 +59,44 @@ public class ImportEtudiantService {
         public void setNbInscriptions(int nbInscriptions) { this.nbInscriptions = nbInscriptions; }
         public int getNbReinscriptions() { return nbReinscriptions; }
         public void setNbReinscriptions(int nbReinscriptions) { this.nbReinscriptions = nbReinscriptions; }
+    }
+    
+    /**
+     * Inscrit automatiquement un étudiant à tous les modules d'un niveau
+     */
+    private void inscrireAuxModulesDuNiveau(Inscription inscription, Niveau niveau) {
+        System.out.println("DEBUG: Début inscription aux modules pour niveau: " + niveau.getAlias());
+        
+        // Récupérer tous les modules de ce niveau
+        List<com.example.gestion_de_notes.entity.Module> modules = moduleRepository.findByNiveau(niveau);
+        System.out.println("DEBUG: Nombre de modules trouvés pour le niveau " + niveau.getAlias() + ": " + modules.size());
+        
+        for (com.example.gestion_de_notes.entity.Module module : modules) {
+            try {
+                // Vérifier si l'inscription au module n'existe pas déjà
+                Optional<InscriptionModule> existante = inscriptionModuleRepository
+                    .findByInscriptionAndModule(inscription, module);
+                
+                if (!existante.isPresent()) {
+                    // Créer la nouvelle inscription au module
+                    InscriptionModule inscriptionModule = new InscriptionModule();
+                    inscriptionModule.setInscription(inscription);
+                    inscriptionModule.setModule(module);
+                    inscriptionModule.setStatut(StatutInscriptionModule.INSCRIT);
+                    
+                    inscriptionModuleRepository.save(inscriptionModule);
+                    System.out.println("DEBUG: Inscription créée pour module: " + module.getTitre());
+                } else {
+                    System.out.println("DEBUG: Inscription déjà existante pour module: " + module.getTitre());
+                }
+                
+            } catch (Exception e) {
+                System.out.println("DEBUG: Erreur lors de l'inscription au module " + module.getTitre() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        System.out.println("DEBUG: Fin inscription aux modules pour niveau: " + niveau.getAlias());
     }
     
     public ImportResult importerEtudiants(MultipartFile file, String anneeUniversitaire, 
@@ -270,8 +314,12 @@ public class ImportEtudiantService {
                     inscription.setNiveau(niveau);
                     inscription.setAnneeUniversitaire(anneeUniversitaire);
                     inscription.setTypeInscription(TypeInscription.INSCRIPTION);
-                    inscriptionRepository.save(inscription);
+                    inscription = inscriptionRepository.save(inscription);
                     System.out.println("DEBUG: Inscription sauvegardée pour: " + data.cne);
+                    
+                    // Inscrire automatiquement dans tous les modules du niveau
+                    inscrireAuxModulesDuNiveau(inscription, niveau);
+                    System.out.println("DEBUG: Inscription aux modules terminée pour: " + data.cne);
                     
                     result.setNbInscriptions(result.getNbInscriptions() + 1);
                     
@@ -322,7 +370,11 @@ public class ImportEtudiantService {
                         inscription.setNiveau(niveau);
                         inscription.setAnneeUniversitaire(anneeUniversitaire);
                         inscription.setTypeInscription(TypeInscription.REINSCRIPTION);
-                        inscriptionRepository.save(inscription);
+                        inscription = inscriptionRepository.save(inscription);
+                        
+                        // Inscrire automatiquement dans tous les modules du niveau
+                        inscrireAuxModulesDuNiveau(inscription, niveau);
+                        System.out.println("DEBUG: Réinscription aux modules terminée pour: " + data.cne);
                         
                         result.setNbReinscriptions(result.getNbReinscriptions() + 1);
                         
