@@ -5,7 +5,14 @@
 <!-- Navbar -->
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#" th:href="@{/}">
+        <a class="navbar-brand" href="#" th:if="${#authorization.expression('isAuthenticated()')}" th:href="@{/redirect-dashboard}">
+            <i class="bi bi-mortarboard"></i>
+            Gestion des Notes
+        </a>
+        <a class="navbar-brand" href="#" th:unless="${#authorization.expression('isAuthenticated()')}" th:href="@{/}">
+            <i class="bi bi-mortarboard"></i>
+            Gestion des Notes
+        </a>
             <i class="bi bi-mortarboard"></i>
             Gestion des Notes
         </a>
