@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Génération des Fichiers de Notes</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/notes/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    Génération des Fichiers de Notes
+                </h1>
+            </div>
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/admin/notes/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Génération des Fichiers</li>
+                </ol>
+            </nav>
+            
+            <!-- Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- Description -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i>
+                            Génération des Fichiers Excel de Collecte des Notes
+                        </h6>
+                        <p class="mb-0">
+                            Cette interface permet de générer automatiquement les fichiers Excel nécessaires pour 
+                            la collecte des notes. Les fichiers générés incluent les formules automatiques pour 
+                            le calcul des moyennes et la validation selon les seuils définis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Types de génération -->
+            <div class="row">
+                <!-- Génération par Module -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                Fichier de Notes par Module
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Génère un fichier Excel pour la collecte des notes d'un module spécifique.
+                                Le fichier contient la liste des étudiants et les colonnes pour saisir les notes.
+                            </p>
+                            
+                            <form th:action="@{/admin/notes/fichiers/module}" method="post" th:object="${request}">
+                                <div class="mb-3">
+                                    <label for="moduleId" class="form-label">
+                                        <i class="bi bi-book"></i>
+                                        Module <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="moduleId" th:field="*{moduleId}" class="form-select" required>
+                                        <option value="">-- Sélectionner un module --</option>
+                                        <option th:each="module : ${modules}" 
+                                                th:value="${module.idModule}" 
+                                                th:text="${module.code + ' - ' + module.titre}">
+                                            MOD001 - Module de test
+                                        </option>
+                                    </select>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="session" class="form-label">
+                                            <i class="bi bi-calendar-check"></i>
+                                            Session
+                                        </label>
+                                        <select id="session" th:field="*{session}" class="form-select">
+                                            <option value="NORMALE">Session Normale</option>
+                                            <option value="RATTRAPAGE">Session de Rattrapage</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="semestre" class="form-label">
+                                            <i class="bi bi-calendar3"></i>
+                                            Semestre
+                                        </label>
+                                        <select id="semestre" th:field="*{semestre}" class="form-select">
+                                            <option value="Automne">Automne</option>
+                                            <option value="Printemps">Printemps</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="anneeUniversitaire" class="form-label">
+                                        <i class="bi bi-calendar-range"></i>
+                                        Année Universitaire
+                                    </label>
+                                    <input type="text" id="anneeUniversitaire" th:field="*{anneeUniversitaire}" 
+                                           class="form-control" placeholder="2024/2025" value="2024/2025">
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-download"></i>
+                                        Générer le Fichier Excel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Génération par Niveau (Délibération) -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-file-earmark-spreadsheet"></i>
+                                Fichier de Délibération
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Génère un fichier Excel de délibération finale pour un niveau complet.
+                                Inclut tous les modules avec calculs automatiques des moyennes et classements.
+                            </p>
+                            
+                            <form th:action="@{/admin/notes/fichiers/deliberation}" method="post">
+                                <div class="mb-3">
+                                    <label for="niveauId" class="form-label">
+                                        <i class="bi bi-layers"></i>
+                                        Niveau <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="niveauId" name="niveauId" class="form-select" required>
+                                        <option value="">-- Sélectionner un niveau --</option>
+                                        <option th:each="niveau : ${niveaux}" 
+                                                th:value="${niveau.idNiveau}" 
+                                                th:text="${niveau.alias + ' - ' + niveau.libelle}">
+                                            GI1 - Génie Informatique 1
+                                        </option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="anneeUniversitaireDelib" class="form-label">
+                                        <i class="bi bi-calendar-range"></i>
+                                        Année Universitaire
+                                    </label>
+                                    <input type="text" id="anneeUniversitaireDelib" name="anneeUniversitaire" 
+                                           class="form-control" value="2024/2025">
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success" id="btnDeliberation">
+                                        <i class="bi bi-download"></i>
+                                        Générer le Fichier de Délibération
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Archive complète -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="bi bi-archive"></i>
+                                Archive Complète par Niveau
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                Génère une archive ZIP contenant tous les fichiers de notes de tous les modules d'un niveau.
+                                Utile pour distribuer tous les fichiers d'un niveau en une seule fois.
+                            </p>
+                            
+                            <div class="alert alert-warning">
+                                <i class="bi bi-tools"></i>
+                                <strong>En cours de développement</strong>
+                                <br>Cette fonctionnalité sera disponible prochainement.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        <i class="bi bi-layers"></i>
+                                        Niveau
+                                    </label>
+                                    <select class="form-select" disabled>
+                                        <option value="">-- Sélectionner un niveau --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-calendar-check"></i>
+                                        Session
+                                    </label>
+                                    <select class="form-select" disabled>
+                                        <option value="NORMALE">Session Normale</option>
+                                        <option value="RATTRAPAGE">Session de Rattrapage</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-calendar-range"></i>
+                                        Année Universitaire
+                                    </label>
+                                    <input type="text" class="form-control" value="2024/2025" disabled>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="button" class="btn btn-warning" disabled>
+                                            <i class="bi bi-download"></i>
+                                            Générer Archive
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        // Validation du formulaire module
+        document.addEventListener('DOMContentLoaded', function() {
+            const formModule = document.querySelector('form[action*="module"]');
+            const moduleSelect = document.getElementById('moduleId');
+            const submitBtnModule = formModule.querySelector('button[type="submit"]');
+            
+            function validateFormModule() {
+                if (moduleSelect.value) {
+                    submitBtnModule.disabled = false;
+                    submitBtnModule.innerHTML = '<i class="bi bi-download"></i> Générer le Fichier Excel';
+                } else {
+                    submitBtnModule.disabled = true;
+                    submitBtnModule.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Sélectionner un module';
+                }
+            }
+            
+            moduleSelect.addEventListener('change', validateFormModule);
+            validateFormModule(); // Vérification initiale
+            
+            // Validation du formulaire délibération
+            const formDeliberation = document.querySelector('form[action*="deliberation"]');
+            if (formDeliberation) {
+                const niveauSelect = document.getElementById('niveauId');
+                const submitBtnDelib = document.getElementById('btnDeliberation');
+                
+                function validateFormDeliberation() {
+                    if (niveauSelect.value) {
+                        submitBtnDelib.disabled = false;
+                        submitBtnDelib.innerHTML = '<i class="bi bi-download"></i> Générer le Fichier de Délibération';
+                    } else {
+                        submitBtnDelib.disabled = true;
+                        submitBtnDelib.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Sélectionner un niveau';
+                    }
+                }
+                
+                niveauSelect.addEventListener('change', validateFormDeliberation);
+                validateFormDeliberation(); // Vérification initiale
+            }
+        });
+    </script>
+</body>
+</html>

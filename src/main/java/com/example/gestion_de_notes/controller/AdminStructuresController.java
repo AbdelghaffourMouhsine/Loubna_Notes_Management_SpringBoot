@@ -38,6 +38,9 @@ public class AdminStructuresController {
     @Autowired
     private PersonneService personneService;
     
+    @Autowired
+    private ParametreValidationService parametreValidationService;
+    
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         model.addAttribute("message", "Bienvenue dans l'administration des structures pédagogiques");
@@ -459,5 +462,125 @@ public class AdminStructuresController {
             redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer cette affectation.");
         }
         return "redirect:/admin/structures/affectations";
+    }
+    
+    // ===============================
+    // GESTION DES PARAMETRES DE VALIDATION
+    // ===============================
+    
+    @GetMapping("/parametres-validation")
+    public String listParametresValidation(Model model) {
+        List<ParametreValidationDTO> parametres = parametreValidationService.findAll();
+        model.addAttribute("parametres", parametres);
+        return "admin/structures/parametres-validation/list";
+    }
+    
+    @GetMapping("/parametres-validation/new")
+    public String showCreateParametreValidationForm(Model model) {
+        model.addAttribute("parametre", new ParametreValidationDTO());
+        model.addAttribute("filieres", filiereService.findAll());
+        model.addAttribute("niveaux", niveauService.findAll());
+        return "admin/structures/parametres-validation/form";
+    }
+    
+    @PostMapping("/parametres-validation")
+    public String createParametreValidation(@Valid @ModelAttribute("parametre") ParametreValidationDTO parametreDTO,
+                                          BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        // Validation métier
+        if (parametreDTO.getSeuilValidationRattrapage() != null && parametreDTO.getSeuilValidationNormale() != null
+                && parametreDTO.getSeuilValidationRattrapage().compareTo(parametreDTO.getSeuilValidationNormale()) > 0) {
+            result.rejectValue("seuilValidationRattrapage", "error.parametre", 
+                "Le seuil de rattrapage ne peut pas être supérieur au seuil normal");
+        }
+        
+        if (parametreValidationService.existsByFiliereAndNiveau(parametreDTO.getIdFiliere(), parametreDTO.getIdNiveau())) {
+            result.rejectValue("idNiveau", "error.parametre", 
+                "Un paramètre de validation existe déjà pour cette combinaison filière/niveau");
+        }
+        
+        if (result.hasErrors()) {
+            model.addAttribute("filieres", filiereService.findAll());
+            model.addAttribute("niveaux", niveauService.findAll());
+            return "admin/structures/parametres-validation/form";
+        }
+        
+        try {
+            parametreValidationService.save(parametreDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Paramètre de validation créé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+        }
+        
+        return "redirect:/admin/structures/parametres-validation";
+    }
+    
+    @GetMapping("/parametres-validation/{id}/edit")
+    public String showEditParametreValidationForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<ParametreValidationDTO> parametre = parametreValidationService.findById(id);
+        if (parametre.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Paramètre de validation non trouvé");
+            return "redirect:/admin/structures/parametres-validation";
+        }
+        
+        model.addAttribute("parametre", parametre.get());
+        model.addAttribute("filieres", filiereService.findAll());
+        model.addAttribute("niveaux", niveauService.findAll());
+        return "admin/structures/parametres-validation/form";
+    }
+    
+    @PostMapping("/parametres-validation/{id}")
+    public String updateParametreValidation(@PathVariable Long id, 
+                                          @Valid @ModelAttribute("parametre") ParametreValidationDTO parametreDTO,
+                                          BindingResult result, RedirectAttributes redirectAttributes, Model model) {
+        
+        // Validation métier
+        if (parametreDTO.getSeuilValidationRattrapage() != null && parametreDTO.getSeuilValidationNormale() != null
+                && parametreDTO.getSeuilValidationRattrapage().compareTo(parametreDTO.getSeuilValidationNormale()) > 0) {
+            result.rejectValue("seuilValidationRattrapage", "error.parametre", 
+                "Le seuil de rattrapage ne peut pas être supérieur au seuil normal");
+        }
+        
+        if (result.hasErrors()) {
+            model.addAttribute("filieres", filiereService.findAll());
+            model.addAttribute("niveaux", niveauService.findAll());
+            return "admin/structures/parametres-validation/form";
+        }
+        
+        try {
+            parametreDTO.setIdParametre(id);
+            parametreValidationService.save(parametreDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Paramètre de validation modifié avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+        }
+        
+        return "redirect:/admin/structures/parametres-validation";
+    }
+    
+    @PostMapping("/parametres-validation/{id}/delete")
+    public String deleteParametreValidation(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            parametreValidationService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Paramètre de validation supprimé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Impossible de supprimer ce paramètre de validation.");
+        }
+        return "redirect:/admin/structures/parametres-validation";
+    }
+    
+    // ===============================
+    // API ENDPOINTS POUR LES NIVEAUX PAR FILIERE
+    // ===============================
+    
+    @GetMapping("/api/filieres/{filiereId}/niveaux")
+    @ResponseBody
+    public ResponseEntity<List<NiveauDTO>> getNiveauxByFiliere(@PathVariable Long filiereId) {
+        try {
+            List<NiveauDTO> niveaux = niveauService.findByFiliereId(filiereId);
+            return ResponseEntity.ok(niveaux);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

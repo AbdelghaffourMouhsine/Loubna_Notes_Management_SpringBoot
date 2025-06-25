@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Gestion des Paramètres de Validation</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/structures/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-shield-check"></i>
+                    Paramètres de Validation
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a th:href="@{/admin/structures/parametres-validation/new}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Nouveau Paramètre
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/admin/structures/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Paramètres de Validation</li>
+                </ol>
+            </nav>
+            
+            <!-- Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- Description -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i>
+                            Gestion des Seuils de Validation
+                        </h6>
+                        <p class="mb-0">
+                            Définissez les seuils de validation (notes minimales) pour chaque combinaison filière/niveau.
+                            Ces seuils sont utilisés pour déterminer automatiquement la validation des modules :
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Seuil Normal (X)</strong> : Note minimale pour valider en session normale</li>
+                            <li><strong>Seuil Rattrapage (Y)</strong> : Note minimale pour valider en session de rattrapage</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liste des paramètres -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-check"></i>
+                        Liste des Paramètres de Validation
+                        <span class="badge bg-primary ms-2" th:text="${#lists.size(parametres)}">0</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${#lists.isEmpty(parametres)}" class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">Aucun paramètre de validation</h5>
+                        <p class="text-muted">Commencez par créer votre premier paramètre de validation.</p>
+                        <a th:href="@{/admin/structures/parametres-validation/new}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Créer un paramètre
+                        </a>
+                    </div>
+                    
+                    <div th:if="${!#lists.isEmpty(parametres)}" class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="20%">
+                                        <i class="bi bi-building"></i>
+                                        Filière
+                                    </th>
+                                    <th width="20%">
+                                        <i class="bi bi-layers"></i>
+                                        Niveau
+                                    </th>
+                                    <th width="15%" class="text-center">
+                                        <i class="bi bi-check-circle"></i>
+                                        Seuil Normal
+                                    </th>
+                                    <th width="15%" class="text-center">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        Seuil Rattrapage
+                                    </th>
+                                    <th width="10%" class="text-center">
+                                        <i class="bi bi-bar-chart"></i>
+                                        Écart
+                                    </th>
+                                    <th width="20%" class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="parametre : ${parametres}">
+                                    <td>
+                                        <div>
+                                            <strong th:text="${parametre.filiereAlias}">GI</strong>
+                                            <br>
+                                            <small class="text-muted" th:text="${parametre.filiereIntitule}">Génie Informatique</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong th:text="${parametre.niveauAlias}">GI1</strong>
+                                            <br>
+                                            <small class="text-muted" th:text="${parametre.niveauLibelle}">Génie Informatique 1</small>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success" th:text="${parametre.seuilValidationNormale} + '/20'">12.00/20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning" th:text="${parametre.seuilValidationRattrapage} + '/20'">8.00/20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info" 
+                                              th:text="${#numbers.formatDecimal(parametre.seuilValidationNormale.subtract(parametre.seuilValidationRattrapage), 1, 2)}">
+                                            4.00
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a th:href="@{/admin/structures/parametres-validation/{id}/edit(id=${parametre.idParametre})}" 
+                                               class="btn btn-outline-primary btn-sm" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                    title="Supprimer"
+                                                    onclick="confirmDelete(/*[[${parametre.idParametre}]]*/)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmation de suppression -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer ce paramètre de validation ?</p>
+                    <p class="text-danger">
+                        <strong>Attention :</strong> Cette action est irréversible et peut affecter 
+                        les calculs de validation existants.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        function confirmDelete(id) {
+            document.getElementById('deleteForm').action = '/admin/structures/parametres-validation/' + id + '/delete';
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+</body>
+</html>

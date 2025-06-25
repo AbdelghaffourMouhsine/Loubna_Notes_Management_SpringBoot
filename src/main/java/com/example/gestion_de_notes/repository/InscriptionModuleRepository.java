@@ -31,4 +31,8 @@ public interface InscriptionModuleRepository extends JpaRepository<InscriptionMo
     
     Optional<InscriptionModule> findByInscriptionAndModule(com.example.gestion_de_notes.entity.Inscription inscription, 
                                                           com.example.gestion_de_notes.entity.Module module);
+    
+    @Query("SELECT im FROM InscriptionModule im WHERE im.module = :module AND im.inscription.anneeUniversitaire = :anneeUniversitaire")
+    List<InscriptionModule> findByModuleAndAnneeUniversitaire(@Param("module") com.example.gestion_de_notes.entity.Module module,
+                                                             @Param("anneeUniversitaire") String anneeUniversitaire);
 }

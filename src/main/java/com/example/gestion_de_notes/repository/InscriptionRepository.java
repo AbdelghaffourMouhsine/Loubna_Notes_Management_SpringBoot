@@ -29,4 +29,8 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Long> 
     
     @Query("SELECT COUNT(i) FROM Inscription i WHERE i.niveau.id = :niveauId AND i.anneeUniversitaire = :annee")
     long countByNiveauAndAnnee(@Param("niveauId") Long niveauId, @Param("annee") String annee);
+    
+    @Query("SELECT i FROM Inscription i WHERE i.niveau = :niveau AND i.anneeUniversitaire = :anneeUniversitaire")
+    List<Inscription> findByNiveauAndAnneeUniversitaire(@Param("niveau") com.example.gestion_de_notes.entity.Niveau niveau,
+                                                       @Param("anneeUniversitaire") String anneeUniversitaire);
 }

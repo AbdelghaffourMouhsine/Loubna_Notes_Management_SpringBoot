@@ -30,4 +30,9 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     
     @Query("SELECT n FROM Note n WHERE n.etudiant.id = :etudiantId AND n.element.module.id = :moduleId")
     Optional<Note> findByEtudiantAndModule(@Param("etudiantId") Long etudiantId, @Param("moduleId") Long moduleId);
+    
+    @Query("SELECT n FROM Note n WHERE n.etudiant.id = :etudiantId AND n.element.module.id = :moduleId AND n.session = :session")
+    List<Note> findByEtudiantAndModuleAndSession(@Param("etudiantId") Long etudiantId, 
+                                               @Param("moduleId") Long moduleId, 
+                                               @Param("session") String session);
 }

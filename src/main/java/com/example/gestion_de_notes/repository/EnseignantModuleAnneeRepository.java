@@ -32,4 +32,8 @@ public interface EnseignantModuleAnneeRepository extends JpaRepository<Enseignan
     
     @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.enseignant.id = :enseignantId AND ema.module.id = :moduleId AND ema.anneeUniversitaire = :annee")
     List<EnseignantModuleAnnee> findByEnseignantModuleAndAnnee(@Param("enseignantId") Long enseignantId, @Param("moduleId") Long moduleId, @Param("annee") String annee);
+    
+    @Query("SELECT ema FROM EnseignantModuleAnnee ema WHERE ema.module = :module AND ema.anneeUniversitaire = :anneeUniversitaire")
+    List<EnseignantModuleAnnee> findByModuleAndAnneeUniversitaire(@Param("module") com.example.gestion_de_notes.entity.Module module,
+                                                                 @Param("anneeUniversitaire") String anneeUniversitaire);
 }

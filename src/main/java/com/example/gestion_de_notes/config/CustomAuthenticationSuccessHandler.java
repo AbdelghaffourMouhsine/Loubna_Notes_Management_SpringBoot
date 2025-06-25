@@ -1,6 +1,7 @@
 package com.example.gestion_de_notes.config;
 
 import com.example.gestion_de_notes.entity.CompteUtilisateur;
+import com.example.gestion_de_notes.entity.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

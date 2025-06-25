@@ -8,14 +8,17 @@ import com.example.gestion_de_notes.repository.PersonneRepository;
 import com.example.gestion_de_notes.service.DataInitializationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class DataInitializer implements CommandLineRunner {
+    
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
     
     private final PersonneRepository personneRepository;
     private final CompteUtilisateurRepository compteRepository;

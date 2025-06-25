@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <title>Paramètre de Validation</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar-generic}" th:with="dashboardUrl='/admin/structures/dashboard'"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-shield-check"></i>
+                    <span th:text="${parametre.idParametre != null ? 'Modifier' : 'Nouveau'} + ' Paramètre de Validation'">
+                        Nouveau Paramètre de Validation
+                    </span>
+                </h1>
+            </div>
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/admin/structures/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/admin/structures/parametres-validation}">
+                            <i class="bi bi-shield-check"></i> Paramètres de Validation
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page" 
+                        th:text="${parametre.idParametre != null ? 'Modifier' : 'Nouveau'}">Nouveau</li>
+                </ol>
+            </nav>
+            
+            <!-- Formulaire -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-form-check"></i>
+                                Informations du Paramètre
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Messages d'aide -->
+                            <div class="alert alert-info mb-4">
+                                <h6 class="alert-heading">
+                                    <i class="bi bi-lightbulb"></i>
+                                    Comment ça marche ?
+                                </h6>
+                                <p class="mb-2">
+                                    Les seuils de validation déterminent automatiquement si un étudiant valide ou non un module :
+                                </p>
+                                <ul class="mb-0">
+                                    <li><strong>V (Validé)</strong> : Si moyenne ≥ Seuil Normal</li>
+                                    <li><strong>R (Rattrapage)</strong> : Si Seuil Rattrapage ≤ moyenne &lt; Seuil Normal</li>
+                                    <li><strong>NV (Non Validé)</strong> : Si moyenne &lt; Seuil Rattrapage</li>
+                                </ul>
+                            </div>
+                            
+                            <form th:action="${parametre.idParametre != null} ? @{/admin/structures/parametres-validation/{id}(id=${parametre.idParametre})} : @{/admin/structures/parametres-validation}" 
+                                  th:object="${parametre}" method="post" novalidate>
+                                
+                                <!-- Filière -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="idFiliere" class="form-label">
+                                            <i class="bi bi-building"></i>
+                                            Filière <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="idFiliere" th:field="*{idFiliere}" 
+                                                class="form-select" th:classappend="${#fields.hasErrors('idFiliere')} ? 'is-invalid' : ''"
+                                                onchange="loadNiveaux()" required>
+                                            <option value="">-- Sélectionner une filière --</option>
+                                            <option th:each="filiere : ${filieres}" 
+                                                    th:value="${filiere.idFiliere}" 
+                                                    th:text="${filiere.alias + ' - ' + filiere.intitule}"
+                                                    th:selected="${filiere.idFiliere == parametre.idFiliere}">
+                                                GI - Génie Informatique
+                                            </option>
+                                        </select>
+                                        <div th:if="${#fields.hasErrors('idFiliere')}" class="invalid-feedback">
+                                            <span th:errors="*{idFiliere}"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Niveau -->
+                                    <div class="col-md-6">
+                                        <label for="idNiveau" class="form-label">
+                                            <i class="bi bi-layers"></i>
+                                            Niveau <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="idNiveau" th:field="*{idNiveau}" 
+                                                class="form-select" th:classappend="${#fields.hasErrors('idNiveau')} ? 'is-invalid' : ''"
+                                                required>
+                                            <option value="">-- Sélectionner un niveau --</option>
+                                            <option th:each="niveau : ${niveaux}" 
+                                                    th:value="${niveau.idNiveau}" 
+                                                    th:text="${niveau.alias + ' - ' + niveau.libelle}"
+                                                    th:selected="${niveau.idNiveau == parametre.idNiveau}">
+                                                GI1 - Génie Informatique 1
+                                            </option>
+                                        </select>
+                                        <div th:if="${#fields.hasErrors('idNiveau')}" class="invalid-feedback">
+                                            <span th:errors="*{idNiveau}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Seuils -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label for="seuilValidationNormale" class="form-label">
+                                            <i class="bi bi-check-circle"></i>
+                                            Seuil de Validation Normale (X) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" id="seuilValidationNormale" th:field="*{seuilValidationNormale}" 
+                                                   class="form-control" th:classappend="${#fields.hasErrors('seuilValidationNormale')} ? 'is-invalid' : ''"
+                                                   step="0.01" min="0" max="20" required
+                                                   placeholder="Ex: 12.00"
+                                                   onchange="validateSeuils()">
+                                            <span class="input-group-text">/20</span>
+                                        </div>
+                                        <div class="form-text">
+                                            Note minimale pour valider en session normale (généralement 12 en cycle ingénieur)
+                                        </div>
+                                        <div th:if="${#fields.hasErrors('seuilValidationNormale')}" class="invalid-feedback">
+                                            <span th:errors="*{seuilValidationNormale}"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="seuilValidationRattrapage" class="form-label">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            Seuil de Validation Rattrapage (Y) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" id="seuilValidationRattrapage" th:field="*{seuilValidationRattrapage}" 
+                                                   class="form-control" th:classappend="${#fields.hasErrors('seuilValidationRattrapage')} ? 'is-invalid' : ''"
+                                                   step="0.01" min="0" max="20" required
+                                                   placeholder="Ex: 8.00"
+                                                   onchange="validateSeuils()">
+                                            <span class="input-group-text">/20</span>
+                                        </div>
+                                        <div class="form-text">
+                                            Note minimale pour valider en session de rattrapage (généralement 8 en cycle ingénieur)
+                                        </div>
+                                        <div th:if="${#fields.hasErrors('seuilValidationRattrapage')}" class="invalid-feedback">
+                                            <span th:errors="*{seuilValidationRattrapage}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Aperçu des règles -->
+                                <div class="alert alert-light" id="reglesApercu" style="display: none;">
+                                    <h6 class="alert-heading">
+                                        <i class="bi bi-eye"></i>
+                                        Aperçu des règles de validation
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="border rounded p-2 text-center bg-success text-white">
+                                                <strong>V - Validé</strong>
+                                                <br>
+                                                <span id="regleValide">Moyenne ≥ --</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="border rounded p-2 text-center bg-warning text-dark">
+                                                <strong>R - Rattrapage</strong>
+                                                <br>
+                                                <span id="regleRattrapage">-- ≤ Moyenne &lt; --</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="border rounded p-2 text-center bg-danger text-white">
+                                                <strong>NV - Non Validé</strong>
+                                                <br>
+                                                <span id="regleNonValide">Moyenne &lt; --</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Message d'erreur de validation -->
+                                <div id="erreurSeuils" class="alert alert-danger" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Le seuil de rattrapage ne peut pas être supérieur au seuil normal !
+                                </div>
+                                
+                                <!-- Boutons -->
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/admin/structures/parametres-validation}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> Annuler
+                                    </a>
+                                    
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="bi bi-save"></i>
+                                        <span th:text="${parametre.idParametre != null ? 'Modifier' : 'Créer'}">Créer</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+    
+    <script>
+        function loadNiveaux() {
+            const filiereId = document.getElementById('idFiliere').value;
+            const niveauSelect = document.getElementById('idNiveau');
+            
+            // Réinitialiser la liste des niveaux
+            niveauSelect.innerHTML = '<option value="">-- Sélectionner un niveau --</option>';
+            
+            if (filiereId) {
+                fetch(`/admin/structures/api/filieres/${filiereId}/niveaux`)
+                    .then(response => response.json())
+                    .then(niveaux => {
+                        niveaux.forEach(niveau => {
+                            const option = document.createElement('option');
+                            option.value = niveau.idNiveau;
+                            option.textContent = `${niveau.alias} - ${niveau.libelle}`;
+                            niveauSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des niveaux:', error);
+                    });
+            }
+        }
+        
+        function validateSeuils() {
+            const seuilNormal = parseFloat(document.getElementById('seuilValidationNormale').value);
+            const seuilRattrapage = parseFloat(document.getElementById('seuilValidationRattrapage').value);
+            const erreurDiv = document.getElementById('erreurSeuils');
+            const apercuDiv = document.getElementById('reglesApercu');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (seuilNormal && seuilRattrapage) {
+                if (seuilRattrapage > seuilNormal) {
+                    erreurDiv.style.display = 'block';
+                    apercuDiv.style.display = 'none';
+                    submitBtn.disabled = true;
+                } else {
+                    erreurDiv.style.display = 'none';
+                    apercuDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    
+                    // Mettre à jour l'aperçu
+                    document.getElementById('regleValide').textContent = `Moyenne ≥ ${seuilNormal}`;
+                    document.getElementById('regleRattrapage').textContent = `${seuilRattrapage} ≤ Moyenne < ${seuilNormal}`;
+                    document.getElementById('regleNonValide').textContent = `Moyenne < ${seuilRattrapage}`;
+                }
+            } else {
+                erreurDiv.style.display = 'none';
+                apercuDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        // Initialiser la validation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            validateSeuils();
+            
+            // Si on est en mode modification et qu'une filière est sélectionnée, charger les niveaux
+            const filiereSelect = document.getElementById('idFiliere');
+            if (filiereSelect.value) {
+                loadNiveaux();
+            }
+        });
+    </script>
+</body>
+</html>
