@@ -26,4 +26,9 @@ public interface InscriptionModuleRepository extends JpaRepository<InscriptionMo
     
     @Query("SELECT im FROM InscriptionModule im WHERE im.inscription.etudiant.id = :etudiantId AND im.statut = :statut")
     List<InscriptionModule> findByEtudiantAndStatut(@Param("etudiantId") Long etudiantId, @Param("statut") StatutInscriptionModule statut);
+    
+    List<InscriptionModule> findByInscription(com.example.gestion_de_notes.entity.Inscription inscription);
+    
+    Optional<InscriptionModule> findByInscriptionAndModule(com.example.gestion_de_notes.entity.Inscription inscription, 
+                                                          com.example.gestion_de_notes.entity.Module module);
 }

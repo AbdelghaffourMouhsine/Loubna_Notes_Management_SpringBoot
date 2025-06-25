@@ -59,6 +59,10 @@ public class ImportEtudiantService {
                                          CompteUtilisateur utilisateur) {
         ImportResult result = new ImportResult();
         
+        System.out.println("DEBUG: Import démarré avec fichier: " + file.getOriginalFilename());
+        System.out.println("DEBUG: Année universitaire: " + anneeUniversitaire);
+        System.out.println("DEBUG: Utilisateur: " + (utilisateur != null ? utilisateur.getLogin() : "null"));
+        
         try {
             // Vérification du format de fichier
             if (!file.getOriginalFilename().endsWith(".xlsx")) {
@@ -76,18 +80,29 @@ public class ImportEtudiantService {
             }
             
             List<EtudiantImportData> etudiants = lireDonneesFichier(sheet, result);
+            System.out.println("DEBUG: Nombre d'étudiants lus: " + etudiants.size());
             if (!result.isSuccess()) {
+                System.out.println("DEBUG: Erreur lors de la lecture: " + result.getMessage());
                 return result;
             }
             
             // Traitement des étudiants
+            System.out.println("DEBUG: Début du traitement des étudiants");
             traiterEtudiants(etudiants, anneeUniversitaire, utilisateur, result);
+            System.out.println("DEBUG: Fin du traitement - Success: " + result.isSuccess() + ", Message: " + result.getMessage());
             
             workbook.close();
             
         } catch (IOException e) {
+            System.out.println("DEBUG: Exception IOException: " + e.getMessage());
+            e.printStackTrace();
             result.setSuccess(false);
             result.setMessage("Erreur lors de la lecture du fichier: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("DEBUG: Exception générale: " + e.getMessage());
+            e.printStackTrace();
+            result.setSuccess(false);
+            result.setMessage("Erreur inattendue: " + e.getMessage());
         }
         
         return result;
@@ -170,33 +185,51 @@ public class ImportEtudiantService {
                 }
                 
                 // Validation des données
+                System.out.println("DEBUG: Validation pour ligne " + data.rowNumber + " - CNE: " + data.cne + ", Nom: " + data.nom + ", Prenom: " + data.prenom + ", IdNiveau: " + data.idNiveau);
+                
                 if (data.cne == null || data.cne.trim().isEmpty()) {
+                    System.out.println("DEBUG: CNE manquant pour ligne " + data.rowNumber);
                     result.getErrors().add("Ligne " + data.rowNumber + ": CNE manquant");
                     continue;
                 }
                 if (data.nom == null || data.nom.trim().isEmpty()) {
+                    System.out.println("DEBUG: Nom manquant pour ligne " + data.rowNumber);
                     result.getErrors().add("Ligne " + data.rowNumber + ": Nom manquant");
                     continue;
                 }
                 if (data.prenom == null || data.prenom.trim().isEmpty()) {
+                    System.out.println("DEBUG: Prénom manquant pour ligne " + data.rowNumber);
                     result.getErrors().add("Ligne " + data.rowNumber + ": Prénom manquant");
                     continue;
                 }
                 if (data.idNiveau == null) {
+                    System.out.println("DEBUG: ID niveau manquant pour ligne " + data.rowNumber);
                     result.getErrors().add("Ligne " + data.rowNumber + ": ID niveau manquant");
                     continue;
                 }
                 
+                System.out.println("DEBUG: Étudiant valide ajouté - ligne " + data.rowNumber);
+                
                 etudiants.add(data);
                 
             } catch (Exception e) {
+                System.out.println("DEBUG: Exception lors de la lecture ligne " + (i + 1) + ": " + e.getMessage());
+                e.printStackTrace();
                 result.getErrors().add("Ligne " + (i + 1) + ": Erreur de lecture - " + e.getMessage());
             }
         }
         
         if (!result.getErrors().isEmpty()) {
+            System.out.println("DEBUG: Erreurs détectées: " + result.getErrors().size());
+            for (String error : result.getErrors()) {
+                System.out.println("DEBUG: Erreur: " + error);
+            }
             result.setSuccess(false);
             result.setMessage("Erreurs de validation détectées dans le fichier");
+            System.out.println("DEBUG: Message d'erreur défini: " + result.getMessage());
+        } else {
+            System.out.println("DEBUG: Aucune erreur détectée, marquage comme succès");
+            result.setSuccess(true);
         }
         
         return etudiants;
@@ -217,6 +250,7 @@ public class ImportEtudiantService {
                 Niveau niveau = niveauOpt.get();
                 
                 if (data.type == TypeInscription.INSCRIPTION) {
+                    System.out.println("DEBUG: Traitement inscription - CNE: " + data.cne);
                     // Nouvel étudiant
                     if (etudiantRepository.existsByCne(data.cne)) {
                         result.getErrors().add("Ligne " + data.rowNumber + ": Un étudiant avec le CNE " + data.cne + " existe déjà");
@@ -237,6 +271,7 @@ public class ImportEtudiantService {
                     inscription.setAnneeUniversitaire(anneeUniversitaire);
                     inscription.setTypeInscription(TypeInscription.INSCRIPTION);
                     inscriptionRepository.save(inscription);
+                    System.out.println("DEBUG: Inscription sauvegardée pour: " + data.cne);
                     
                     result.setNbInscriptions(result.getNbInscriptions() + 1);
                     
@@ -245,6 +280,7 @@ public class ImportEtudiantService {
                         "Inscription de l'étudiant " + etudiant.getNomComplet() + " (CNE: " + etudiant.getCne() + ") en " + niveau.getAlias());
                     
                 } else {
+                    System.out.println("DEBUG: Traitement réinscription - CNE: " + data.cne);
                     // Réinscription
                     Optional<Etudiant> etudiantOpt = etudiantRepository.findByCne(data.cne);
                     if (!etudiantOpt.isPresent()) {
@@ -299,6 +335,8 @@ public class ImportEtudiantService {
                 }
                 
             } catch (Exception e) {
+                System.out.println("DEBUG: Erreur lors du traitement de l'étudiant ligne " + data.rowNumber + ": " + e.getMessage());
+                e.printStackTrace();
                 result.getErrors().add("Ligne " + data.rowNumber + ": Erreur de traitement - " + e.getMessage());
             }
         }

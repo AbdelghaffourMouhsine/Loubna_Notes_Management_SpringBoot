@@ -27,4 +27,7 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
     
     @Query("SELECT COUNT(m) FROM Module m WHERE m.niveau.id = :niveauId")
     long countByNiveauId(@Param("niveauId") Long niveauId);
+    
+    @Query("SELECT m FROM Module m WHERE m.niveau = :niveau")
+    List<Module> findByNiveau(@Param("niveau") com.example.gestion_de_notes.entity.Niveau niveau);
 }

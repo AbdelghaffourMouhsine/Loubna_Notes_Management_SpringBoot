@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Étudiants - Gestion des Notes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div th:replace="~{fragments/layout :: sidebar}"></div>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><i class="fas fa-file-import me-2"></i>Import des Étudiants</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/admin/notes/etudiants}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Retour
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Messages d'alerte -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${warnings}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Avertissements :</strong>
+                    <ul class="mb-0 mt-2">
+                        <li th:each="warning : ${warnings}" th:text="${warning}"></li>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${errors}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <strong>Erreurs détectées :</strong>
+                    <ul class="mb-0 mt-2">
+                        <li th:each="error : ${errors}" th:text="${error}"></li>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Erreurs de validation -->
+                <div th:if="${validation?.errors}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <strong>Erreurs de validation :</strong>
+                    <ul class="mb-0 mt-2">
+                        <li th:each="error : ${validation.errors}" th:text="${error}"></li>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-upload me-2"></i>Import depuis fichier Excel
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/admin/notes/import/valider}" method="post" enctype="multipart/form-data" id="importForm">
+                                    <div class="mb-3">
+                                        <label for="anneeUniversitaire" class="form-label">Année Universitaire *</label>
+                                        <select class="form-select" id="anneeUniversitaire" name="anneeUniversitaire" required>
+                                            <option value="">Sélectionnez une année</option>
+                                            <option value="2023/2024">2023/2024</option>
+                                            <option value="2024/2025" selected>2024/2025</option>
+                                            <option value="2025/2026">2025/2026</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="file" class="form-label">Fichier Excel (.xlsx) *</label>
+                                        <input class="form-control" type="file" id="file" name="file" accept=".xlsx" required>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Le fichier doit contenir les colonnes : ID_ETUDIANT, CNE, NOM, PRENOM, ID_NIVEAU_ACTUEL, TYPE
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-check me-2"></i>Valider le fichier
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>Instructions
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <h6>Structure du fichier Excel :</h6>
+                                <ul class="small mb-3">
+                                    <li><strong>ID_ETUDIANT</strong> : Identifiant unique</li>
+                                    <li><strong>CNE</strong> : Code National Étudiant</li>
+                                    <li><strong>NOM</strong> : Nom de famille</li>
+                                    <li><strong>PRENOM</strong> : Prénom</li>
+                                    <li><strong>ID_NIVEAU_ACTUEL</strong> : ID du niveau</li>
+                                    <li><strong>TYPE</strong> : INSCRIPTION ou REINSCRIPTION</li>
+                                </ul>
+                                
+                                <h6>Processus d'import :</h6>
+                                <ol class="small mb-3">
+                                    <li>Validation du format de fichier</li>
+                                    <li>Vérification des données</li>
+                                    <li>Détection des conflits</li>
+                                    <li>Résolution des conflits (si nécessaire)</li>
+                                    <li>Import final</li>
+                                </ol>
+
+                                <div class="alert alert-info small">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Les étudiants ajournés ne seront inscrits que dans les modules non validés.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-download me-2"></i>Template Excel
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small">Téléchargez le template Excel avec la structure correcte et des exemples.</p>
+                                <a th:href="@{/admin/notes/import/template}" 
+                                   class="btn btn-outline-success btn-sm" download>
+                                    <i class="fas fa-file-excel me-1"></i>Télécharger le template
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-users me-2"></i>Gestion des ajournés
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small">Gérez les inscriptions des étudiants ajournés dans des modules supplémentaires.</p>
+                                <a th:href="@{/admin/notes/import/etudiants-ajournes(anneeUniversitaire='2024/2025')}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-cog me-1"></i>Gérer les ajournés
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('importForm').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                // Vérifier l'extension
+                if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                    e.preventDefault();
+                    alert('Veuillez sélectionner un fichier Excel (.xlsx)');
+                    return;
+                }
+                
+                // Vérifier la taille (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    e.preventDefault();
+                    alert('Le fichier est trop volumineux (max 10MB)');
+                    return;
+                }
+                
+                // Afficher un indicateur de chargement
+                const btn = this.querySelector('button[type="submit"]');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Validation en cours...';
+                btn.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
